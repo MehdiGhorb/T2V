@@ -1,0 +1,9 @@
+imageio
+imageio[ffmpeg]
+video-diffusion-pytorch
+huggingface_hub
+transformers
+sentencepiece
+sacremoses
+moviepy
+isodate
