@@ -6,16 +6,20 @@ import requests
 from tqdm import tqdm
 import os
 
-def read_data(csv_file_path, videos=20000):
+def read_data(csv_file_path, start_index=0, end_index=20000):
     with open(csv_file_path, "r") as file:
         csv_reader = csv.reader(file)
 
         # Skip the header row if it exists
         header = next(csv_reader, None)
 
-        # Display the first 10 rows
+        # Skip rows until the start index
+        for _ in range(start_index):
+            next(csv_reader, None)
+
+        # Read and return rows within the specified interval
         rows = []
-        for _ in range(videos):
+        for _ in range(start_index, end_index + 1):
             row = next(csv_reader, None)
             if row is not None:
                 rows.append(row)
