@@ -37,32 +37,17 @@ def main():
 
     args = parser.parse_args()
 
-    # Use os.listdir() to get a list of all files and directories in the specified path
-    contents = os.listdir(base_directory)
-
-    # Filter the list to only include directories
-    directories = [item for item in contents if os.path.isdir(os.path.join(base_directory, item))]
-
-    # Print the list of directories
-    for directory in directories:
-        print(directory)
-
-
-    createDirectory(f"../original_videos/video_{args.num_videos}")
-
     rows = read_data(base_data_dir + args.csv_file_name, start_index=total_number_of_videos, end_index=args.num_videos + total_number_of_videos)
     video_urls = []
 
     for index in rows:
         video_urls.append(index[1])
 
-    indexes_to_delete = download_videos(video_urls, base_directory+f"/{len(indexes)}_video_{args.num_videos}")
+    indexes_to_delete = download_videos(video_urls, base_directory)
 
-#Update the yaml file
-#for i in indexes_to_delete:
-#    data['failed_indexes'].append(i)
-
-#data['failed_indexes'] += total_videos_checkpoint
+    #Update the yaml file
+    for i in indexes_to_delete:
+        data['failed_indexes'].append(i)
 
 if __name__ == "__main__":
     main()
