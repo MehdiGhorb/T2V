@@ -98,3 +98,4 @@ def videoToGIF(video_path, output_gif_path ):
       for frame in frames]
 
   imageio.mimsave(output_gif_path, resized_frames, duration=frame_duration)
+  

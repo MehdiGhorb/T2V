@@ -9,17 +9,12 @@ from yamlEditor import *
 import sys
 sys.path.append('../helper')
 from dataLoader import *
+sys.path.append('../common')
+import paths
 
-base_directory = '../original_videos'
-base_data_dir = '../data/'
-base_logs_dir = '../logs/'
-
-#keys = extractKeysFromYaml(data)
-#largest = findLargestIndexedString(data)
-#print(largest)
-# Write the updated data back to the YAML file
-#with open(track_file, 'w') as yaml_file:
-#    yaml.dump(data, yaml_file)
+#base_mp4video_directory = '../original_videos'
+#base_data_dir = '../data/'
+#base_download_checkpoint_dir = '../download_checkpoint/'
 
 def main():
     parser = argparse.ArgumentParser(description='Download videos from CSV URLs')
@@ -28,28 +23,31 @@ def main():
     args = parser.parse_args()
 
     # Read data from main YAML
-    temp = args.csv_file_name.replace('.csv', '')
-    main_yaml = loadMainYamlFile(base_logs_dir + f"track_{temp}.yaml")
+    main_yaml = loadMainYamlFile(paths.base_download_checkpoint_dir + f"track_{args.csv_file_name.replace('.csv', '')}.yaml")
     total_number_of_videos = main_yaml['Total_video_checkpoint']
-    # Update main YAML values
-    main_yaml['Total_video_checkpoint'] = main_yaml['Total_video_checkpoint'] + args.num_videos
-    main_yaml['Total_iterations'] = main_yaml['Total_iterations'] + 1
 
-    rows = read_data(base_data_dir + args.csv_file_name, start_index=total_number_of_videos, end_index=args.num_videos + total_number_of_videos)
+    rows = read_data(paths.base_data_dir + args.csv_file_name, start_index=total_number_of_videos, end_index=args.num_videos + total_number_of_videos-1)
     video_urls = []
 
     for index in rows:
         video_urls.append(index[1])
 
-    indexes_to_delete = download_videos(video_urls, base_directory)
+    indexes_to_delete = download_videos(video_urls, paths.base_mp4video_directory)
 
     # Save the relevant data to iteration YAML file
-    track_file = f'../logs/logs_{args.csv_file_name.replace(".csv", "")}/track_{main_yaml["Total_iterations"]}.yaml'
-    iter_data = createOrLoadYamlFile(track_file)
-    iter_data['Source'] = args.csv_file_name
-    iter_data['failed_indexes'] = indexes_to_delete
-    iter_data['video_checkpoint_from_to'] = [total_number_of_videos, args.num_videos + total_number_of_videos]
-    iter_data['total_videos'] = args.num_videos
+    track_file = paths.base_download_checkpoint_dir + f'logs_{args.csv_file_name.replace(".csv", "")}/track_{main_yaml["Total_iterations"]}.yaml'
+    _ = createOrLoadYamlFile(track_file)
+    updateIterationYamlFile(track_file,
+                            source=args.csv_file_name,
+                            failed_indexes=indexes_to_delete,
+                            total_videos=args.num_videos,
+                            video_checkpoint_from_to=[total_number_of_videos+2, args.num_videos + total_number_of_videos+1])
+
+    # Update main YAML file
+    updateMainYamlFile(paths.base_download_checkpoint_dir + f"track_{args.csv_file_name.replace('.csv', '')}.yaml",
+                       source=args.csv_file_name.replace('.csv', ''),
+                       total_iterations=main_yaml['Total_iterations'] + 1,
+                       total_video_check_point=main_yaml['Total_video_checkpoint'] + args.num_videos)
 
 if __name__ == "__main__":
     main()

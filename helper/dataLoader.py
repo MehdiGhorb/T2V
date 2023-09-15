@@ -9,20 +9,17 @@ import os
 def read_data(csv_file_path, start_index=0, end_index=20000):
     with open(csv_file_path, "r") as file:
         csv_reader = csv.reader(file)
-
-        # Skip the header row if it exists
+        # Read the header row if it exists
         header = next(csv_reader, None)
-
         # Skip rows until the start index
         for _ in range(start_index):
             next(csv_reader, None)
-
-        # Read and return rows within the specified interval
+        # Read and return rows within the specified interval, while handling empty rows
         rows = []
-        for _ in range(start_index, end_index + 1):
-            row = next(csv_reader, None)
-            if row is not None:
+        for row in csv_reader:
+            if row and start_index <= end_index:
                 rows.append(row)
+                start_index += 1
         return rows
 
 def extract_duration(iso_format):
