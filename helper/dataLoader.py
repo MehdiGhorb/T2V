@@ -5,12 +5,13 @@ import csv
 import requests
 from tqdm import tqdm
 import os
+import glob
 
-def read_data(csv_file_path, start_index=0, end_index=20000):
+def read_data(csv_file_path, start_index=0, end_index=10000):
     with open(csv_file_path, "r") as file:
         csv_reader = csv.reader(file)
         # Read the header row if it exists
-        header = next(csv_reader, None)
+        skip_header = next(csv_reader, None)
         # Skip rows until the start index
         for _ in range(start_index):
             next(csv_reader, None)
@@ -23,28 +24,32 @@ def read_data(csv_file_path, start_index=0, end_index=20000):
         return rows
 
 def extract_duration(iso_format):
-  duration = parse_duration(iso_format)
-  duration_seconds = duration.total_seconds()
-  return duration_seconds
+    duration = parse_duration(iso_format)
+    duration_seconds = duration.total_seconds()
+    return duration_seconds
 
 def download_videos(video_urls: list[str], dir_path):
-  failed_downloads = []
-  j=0
-  for video_url in tqdm(video_urls, desc='Downloading videos'):
-      response = requests.get(video_url)  # Send a GET request to download the video
-      http_status = response.status_code
+    failed_downloads = []
+    j=2
+    for video_url in tqdm(video_urls, desc='Downloading videos'):
+        try:
+            response = requests.get(video_url)  # Send a GET request to download the video
+            http_status = response.status_code
+        #except requests.exceptions.ConnectionError or requests.exceptions.InvalidURL:
+        except:
+            http_status = 404
 
-      if http_status == 200:
-          video_path = dir_path + f"/video_{video_urls.index(video_url)}.mp4"
+        if http_status == 200:
+            video_path = dir_path + f"/video_{video_urls.index(video_url)}.mp4"
 
-          with open(video_path, "wb") as f:
-              f.write(response.content)
+            with open(video_path, "wb") as f:
+                f.write(response.content)
 
-      else:
-          print(f"Download failed for {video_url} (HTTP {http_status})")
-          failed_downloads.append(j)
-      j+=1
-  return failed_downloads
+        else:
+            print(f"Download failed for {video_url} (HTTP {http_status})")
+            failed_downloads.append(j)
+        j+=1
+    return failed_downloads
 
 # Sort the video files based on the numeric part of the file names
 def extract_numeric_part(filename):
@@ -56,7 +61,7 @@ def getVideoNames(directory):
   all_files = os.listdir(directory)
 
   # Filter out video files (you can customize the extensions as needed)
-  video_extensions = ['.mp4', '.avi', '.mkv', '.mov', '.wmv', '.flv']
+  video_extensions = ['.mp4', ".gif"]
   video_files = [os.path.join(directory, file) for file in all_files if any(file.lower().endswith(ext) for ext in video_extensions)]
 
   sorted_video_files = sorted(video_files, key=extract_numeric_part)
@@ -68,3 +73,29 @@ def createDirectory(directory):
     # Create directory if it doesn't exist
     if not os.path.exists(directory):
         os.makedirs(directory)
+
+def countVideosInDirectory(directory_path):
+    # Ensure the directory path exists
+    if not os.path.exists(directory_path):
+        raise FileNotFoundError(f"The directory '{directory_path}' does not exist.")
+
+    # Use the glob module to search for video files (you can add more extensions as needed)
+    video_extensions = ["*.mp4", ".gif"]
+    video_files = []
+    
+    for extension in video_extensions:
+        video_files.extend(glob.glob(os.path.join(directory_path, extension)))
+
+    # Return the count of video files found
+    return len(video_files)
+
+def createCustomedVideoCsvFile(video_urls, video_names, csv_filename):
+    if len(video_urls) != len(video_names):
+        raise ValueError("Length of video_urls and video_names must be the same.")
+
+    with open(csv_filename, 'w', newline='') as csvfile:
+        csv_writer = csv.writer(csvfile)
+        csv_writer.writerow(['Video URL', 'Video Name'])
+        
+        for url, name in zip(video_urls, video_names):
+            csv_writer.writerow([url, name])
