@@ -15,18 +15,19 @@ def main():
     args = parser.parse_args()
 
     rows = read_data(paths.base_data_dir + "original/" + args.csv_file_name, start_index=0, end_index=11000000)
-    #parser.add_argument('num_videos', type=int, help='Number of videos per iteration')
+
     video_urls = []
     video_desc = []
 
     for index in tqdm(rows, desc="Customizing CSV File ..."):
         video_urls.append(index[1])
-        video_desc.append(index[4])
+        # Remove line breaks and newline characters from descriptions
+        description = index[4].replace("\n", " ").replace("\r", " ")
+        video_desc.append(description)
 
-    # Create customed CSV file
+    # Create customised CSV file
     # Format: {Video URLs, Desc}
-    createCustomedVideoCsvFile(video_urls=video_urls, video_names=video_desc, csv_filename=paths.base_data_dir + "customed/" + f"customed_{args.csv_file_name}")
+    createCustomedVideoCsvFile(video_urls=video_urls, video_names=video_desc, csv_filename=paths.base_data_dir + "customised/" + f"customised_{args.csv_file_name}")
 
 if __name__ == "__main__":
     main()
-

@@ -7,3 +7,4 @@ sentencepiece
 sacremoses
 moviepy
 pytest
+psutil

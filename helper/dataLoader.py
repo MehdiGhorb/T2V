@@ -99,3 +99,4 @@ def createCustomedVideoCsvFile(video_urls, video_names, csv_filename):
         
         for url, name in zip(video_urls, video_names):
             csv_writer.writerow([url, name])
+            
