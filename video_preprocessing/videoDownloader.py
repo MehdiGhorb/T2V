@@ -32,7 +32,11 @@ def main():
     for index in rows:
         video_urls.append(index[0])
 
-    indexes_to_delete = download_videos(video_urls, paths.base_mp4video_directory)
+    try:
+        indexes_to_delete = download_videos(video_urls, paths.base_mp4video_directory)
+    except:
+        # Do not Modify any checkpoint information if the download process was unsuccessful
+        sys.exit()
 
     # Save the relevant data to iteration YAML file
     track_file = paths.base_download_checkpoint_dir + f'logs_{args.csv_file_name.replace(".csv", "")}/track_{main_yaml["Total_iterations"]}.yaml'

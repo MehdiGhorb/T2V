@@ -1,6 +1,0 @@
-Source: customised_results_10M_val.csv
-failed_indexes: []
-total_videos: 51
-video_checkpoint_from_to:
-- 2
-- 51
