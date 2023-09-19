@@ -6,17 +6,16 @@ Run this in Shell or use Jupyter notebook:
 
 import torch
 import argparse
-from tqdm import trange, tqdm
-from yamlEditor import *
+from tqdm import tqdm
 import sys
 sys.path.append('../helper')
-from dataLoader import getVideoNames, updateIterationYamlFile
+from dataLoader import getVideoNames
 from videoAnnotation import *
 sys.path.append('../common')
 import paths
 sys.path.append('../video_preprocessing')
-from yamlEditor import loadMainYamlFile
-from saveTensor import saveBuffer
+from yamlEditor import loadMainYamlFile, updateIterationYamlFile
+from saveTensor import saveTensor
 import warnings
 import yaml
 
@@ -36,17 +35,17 @@ def main():
     # Indexes to delete (unqualified tensors)
     indexes_to_delete = []
     # get all the video names
-    videos = getVideoNames(video_yamlFile)
+    videos = getVideoNames(paths.base_mp4video_directory)
 
     # Read the config file
     with open("config_values/config.yaml", "r") as config:
         tensor_config = yaml.load(config, Loader=yaml.FullLoader)
 
     # Create a sample tensor to compare and remove the unqualified tensors
-    size = (tensor_config["channels"], 
-            tensor_config["frame_num"], 
-            tensor_config["frame_size"]/2, 
-            tensor_config["frame_size"]/2)
+    size = (int(tensor_config["channels"]), 
+            int(tensor_config["frame_num"]), 
+            int(tensor_config["frame_size"]/2), 
+            int(tensor_config["frame_size"]/2))
     sample_shape = torch.tensor(size)
 
     with warnings.catch_warnings():
@@ -65,11 +64,11 @@ def main():
             reduced_length = reduce_frames(resized_video, tensor_config["length"], 
                                            tensor_config["frame_num"])
             # Convert the videos to GIFs
-            create_gif(reduced_length, f"/content/gifs/Gif_{gif_index}.gif")
+            create_gif(reduced_length, paths.final_gif_directory + f"/Gif_{gif_index}.gif")
 
             # create the dictionary of tensors
             gif_name = f"gif_{gif_index}"
-            gif_value = f"/content/gifs/Gif_{gif_index}.gif"
+            gif_value = paths.final_gif_directory + f"/Gif_{gif_index}.gif"
             gif_dict[gif_name] = gif_value
             gif_index += 1
 
@@ -79,7 +78,8 @@ def main():
     # Iterate through the tensors and check their frame numbers
     for i, tensor in enumerate(tensor_list):
 
-        if tensor.shape != sample_shape:
+        #if tensor.shape != sample_shape.tolist():
+        if torch.equal(tensor, sample_shape):
             # If the frame number is not the desired one, append its index to the list
             indexes_to_delete.append(i)
 
@@ -106,6 +106,12 @@ def main():
                                 video_checkpoint_from_to=video_checkpoint_range)
     
     # Save the tensor
-    saveBuffer(tensor_list=tensor_list,
-               tensor_path=paths.tensor_path + f'track_{main_yaml["Total_iterations"]-1}.pt')
+    saveTensor(tensor_list=tensor_list,
+               tensor_path=paths.tensor_path + f'/track_{main_yaml["Total_iterations"]-1}.pt')
+    
+    print("\nTensor saved successfully!\n")
+
+if __name__ == "__main__":
+    main()
+    
     
