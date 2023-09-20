@@ -8,7 +8,7 @@ import argparse
 from tqdm import tqdm
 import sys
 sys.path.append('../helper')
-from dataLoader import getVideoNames
+from dataLoader import getVideoNames, removeDirContent
 from videoAnnotation import *
 sys.path.append('../common')
 import paths
@@ -73,6 +73,10 @@ def main():
             gif_dict[gif_name] = gif_value
             gif_index += 1
 
+    # Remove mp4 videos
+    removeDirContent(paths.base_mp4video_directory)
+
+    # Convert GIFs to Tensors
     for gif in tqdm(gif_dict.values(), desc="Converting GIFs to Tensors... "):
         tensor_list.append(gif_to_tensor(gif))
 
@@ -108,7 +112,7 @@ def main():
     
     # Save the tensor
     saveTensor(tensor_list=tensor_list,
-               tensor_path=paths.tensor_path + f'/track_{main_yaml["Total_iterations"]-1}.pt')
+               tensor_path=paths.tensor_path + f'customised_{args.csv_file_name.replace(".csv", "")}' + f'/track_{main_yaml["Total_iterations"]}.pt')
     
     print("\nTensor saved successfully!\n")
 

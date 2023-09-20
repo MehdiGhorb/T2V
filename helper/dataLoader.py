@@ -6,6 +6,7 @@ import requests
 from tqdm import tqdm
 import os
 import glob
+import shutil
 
 def read_data(csv_file_path, start_index=0, end_index=10000):
     with open(csv_file_path, "r") as file:
@@ -73,6 +74,24 @@ def createDirectory(directory):
     # Create directory if it doesn't exist
     if not os.path.exists(directory):
         os.makedirs(directory)
+
+def removeDirContent(directory_path):
+    # Check if the directory exists
+    if not os.path.exists(directory_path):
+        print(f"Directory '{directory_path}' does not exist.")
+        return
+
+    # Iterate through all items in the directory
+    for item in os.listdir(directory_path):
+        item_path = os.path.join(directory_path, item)
+        # Check if the item is a file
+        if os.path.isfile(item_path):
+            # Delete the file
+            os.unlink(item_path)
+        # Check if the item is a subdirectory
+        elif os.path.isdir(item_path):
+            # Delete the subdirectory and its contents recursively
+            shutil.rmtree(item_path)
 
 def countVideosInDirectory(directory_path):
     # Ensure the directory path exists

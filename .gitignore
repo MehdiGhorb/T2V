@@ -31,3 +31,4 @@ tempVideoCleaner.py
 /videos/
 /data/
 /tensors/
+/download_checkpoint/
