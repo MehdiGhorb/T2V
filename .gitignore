@@ -28,6 +28,6 @@ dmypy.json
 tempVideoCleaner.py
 
 /T2V/
-/original_videos/
+/videos/
 /data/
 /tensors/

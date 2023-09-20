@@ -3,7 +3,6 @@ Convert videos to GIFs and create Tensors of them
 Run this in Shell or use Jupyter notebook:
 
 '''
-
 import torch
 import argparse
 from tqdm import tqdm
@@ -58,10 +57,12 @@ def main():
                                               tensor_config["crop_size"], 
                                               tensor_config["crop_size"])
             # Resize the frames
-            resized_video = resize_frames(cropped_video, tensor_config["frame_size"], 
+            resized_video = resize_frames(cropped_video, 
+                                          tensor_config["frame_size"], 
                                           tensor_config["frame_size"])
             # Reduce the length
-            reduced_length = reduce_frames(resized_video, tensor_config["length"], 
+            reduced_length = reduce_frames(resized_video, 
+                                           tensor_config["length"], 
                                            tensor_config["frame_num"])
             # Convert the videos to GIFs
             create_gif(reduced_length, paths.final_gif_directory + f"/Gif_{gif_index}.gif")
@@ -113,5 +114,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
     
