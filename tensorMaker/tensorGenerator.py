@@ -88,7 +88,7 @@ def main():
             # If the frame number is not the desired one, append its index to the list
             indexes_to_delete.append(i)
 
-    # Delete the undesired tensors from the list (if they exist)
+    # Delete the unqualified tensors from the list (if they exist)
     if len(indexes_to_delete) != 0:
         for index in reversed(indexes_to_delete):
             del tensor_list[index]
@@ -112,8 +112,11 @@ def main():
     
     # Save the tensor
     saveTensor(tensor_list=tensor_list,
-               tensor_path=paths.tensor_path + f'customised_{args.csv_file_name.replace(".csv", "")}' + f'/track_{main_yaml["Total_iterations"]}.pt')
+               tensor_path=paths.tensor_path + f'/{args.csv_file_name.replace(".csv", "")}' + f'/track_{main_yaml["Total_iterations"]-1}.pt')
     
+    # Remove GIFs
+    removeDirContent(paths.final_gif_directory)
+
     print("\nTensor saved successfully!\n")
 
 if __name__ == "__main__":

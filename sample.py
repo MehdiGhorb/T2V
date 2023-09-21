@@ -1,6 +1,9 @@
-from video_diffusion_pytorch import Unet3D, GaussianDiffusion
-sys.path.append('/helper')
-from vide_annotation import *
+from video_diffusion_pytorch import GaussianDiffusion
+
+# Load Tensor
+model = loadModel()
+
+diffusion = GaussianDiffusion(model)
 
 new_text = [
     'a woman face moving and looking around'
