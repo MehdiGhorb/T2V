@@ -1,5 +1,5 @@
 # common path
-# This is suboptimal - Compute the path on the fly
+# TODO -This is suboptimal - Compute the path on the fly
 base_mp4video_directory = '/mnt/c/Users/ghorb/OneDrive/Desktop/T2V/videos/original_videos'
 final_gif_directory = '/mnt/c/Users/ghorb/OneDrive/Desktop/T2V/videos/gifs'
 base_data_dir = '/mnt/c/Users/ghorb/OneDrive/Desktop/T2V/data/'
@@ -8,3 +8,4 @@ helper_path = '/mnt/c/Users/ghorb/OneDrive/Desktop/T2V/helper'
 tensor_path = '/mnt/c/Users/ghorb/OneDrive/Desktop/T2V/tensors'
 downloader_path = '/mnt/c/Users/ghorb/OneDrive/Desktop/T2V/video_preprocessing'
 tensor_gen_path = '/mnt/c/Users/ghorb/OneDrive/Desktop/T2V/tensorMaker'
+training_checkpoint_dir = '/mnt/c/Users/ghorb/OneDrive/Desktop/T2V/training_checkpoint'

@@ -8,3 +8,5 @@ sacremoses
 moviepy
 pytest
 psutil
+einops-exts
+rotary-embedding-torch
