@@ -7,8 +7,8 @@ setup(
   license='MIT',
   description = 'Video Diffusion - Pytorch',
   long_description_content_type = 'text/markdown',
-  author = 'Phil Wang',
-  author_email = 'lucidrains@gmail.com',
+  author = 'Phil Wang, Mehdi Ghorbani',
+  author_email = 'lucidrains@gmail.com, ghorbanimahdi565@gmail.com',
   url = 'https://github.com/lucidrains/video-diffusion-pytorch',
   keywords = [
     'artificial intelligence',

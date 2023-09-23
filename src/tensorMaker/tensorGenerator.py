@@ -17,14 +17,15 @@ from yamlEditor import loadMainYamlFile, updateIterationYamlFile
 from saveTensor import saveTensor
 import warnings
 import yaml
+import os
 
 def main():        
     parser = argparse.ArgumentParser(description='Download videos from CSV URLs')
     parser.add_argument('csv_file_name', help='Path to the CSV file containing video URLs')
     args = parser.parse_args()
 
-    main_yaml = loadMainYamlFile(paths.base_download_checkpoint_dir + "main_customised/" + f"track_{args.csv_file_name.replace('.csv', '')}.yaml")
-    video_yamlFile = paths.base_download_checkpoint_dir + f'logs_{args.csv_file_name.replace(".csv", "")}/track_{main_yaml["Total_iterations"]-1}.yaml'
+    main_yaml = loadMainYamlFile(os.path.join(paths.base_download_checkpoint_dir + "/main_customised", f"track_{args.csv_file_name.replace('.csv', '')}.yaml"))
+    video_yamlFile = os.path.join(paths.base_download_checkpoint_dir + f'/logs_{args.csv_file_name.replace(".csv", "")}', f'track_{main_yaml["Total_iterations"]-1}.yaml')
     # Create an empty dictionary to store tensors
     gif_dict = {}
     # gif index
@@ -112,7 +113,7 @@ def main():
     
     # Save the tensor
     saveTensor(tensor_list=tensor_list,
-               tensor_path=paths.tensor_path + f'/{args.csv_file_name.replace(".csv", "")}' + f'/track_{main_yaml["Total_iterations"]-1}.pt')
+               tensor_path=os.path.join(paths.tensor_path + f'/{args.csv_file_name.replace(".csv", "")}', f'track_{main_yaml["Total_iterations"]-1}.pt'))
     
     # Remove GIFs
     removeDirContent(paths.final_gif_directory)

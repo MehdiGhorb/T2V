@@ -4,25 +4,41 @@ from video_diffusion_pytorch import Unet3D, GaussianDiffusion
 from tqdm import trange
 sys.path.append('helper')
 from dataLoader import read_data
-from trainingCheckPoint import getLatestCheckpoint
+#from trainingCheckPoint import getLatestCheckpoint
 sys.path.append('tensorMaker')
 from saveTensor import loadTensor
 sys.path.append('common')
 import paths
 import argparse
+import os
+import gc
 
 def main():
     parser = argparse.ArgumentParser(description='Main Training Script')
     parser.add_argument('csv_file_path', help='Path to the CSV file containing video descriptions')
     args = parser.parse_args()
 
-    # Suboptimal dur
-    rows = read_data(paths.base_data_dir + 'customised/' + args.csv_file_path)
-
-    video_description = []
+    '''Read Training Data'''
+    training_rows = read_data(os.path.join(paths.base_data_dir + '/csv_files/customised', args.csv_file_path))
+    training_video_description = []
     # Read video descriptions
-    for index in rows:
-        video_description.append(index[1])
+    for index in training_rows:
+        training_video_description.append(index[1])
+    # Delete for memory efficiency purposes
+    del training_rows
+    # garbage collector (Test if this command really helps improve memory efficiency)
+
+    '''Read Validation Data'''
+    validation_rows = read_data(os.path.join(paths.base_data_dir + '/csv_files/customised', args.csv_file_path.replace("_train", "_val")))
+    val_video_description = []
+    # Read video descriptions
+    for index in validation_rows:
+        val_video_description.append(index[1])
+    # Delete for memory efficiency purposes
+    del validation_rows
+    
+    # garbage collector (Test if this command really helps improve memory efficiency)
+    gc.collect()
 
     #torch.cuda.empty_cache()
     model = Unet3D(
@@ -34,24 +50,17 @@ def main():
     diffusion = GaussianDiffusion(
         model,
         image_size=64,    # height and width of frames
-        num_frames=10,     # number of video frames
+        num_frames=10,    # number of video frames
         timesteps=1000,   # number of steps
         loss_type='l1'    # L1 or L2
     )
 
-    # Load Tensor
-    #Temp
-    FolderPath = f'/{args.csv_file_path.replace(".csv", "").replace("_val", "")}'
-    iter = getLatestCheckpoint(paths.training_checkpoint_dir + FolderPath + f'/training_results_10M.yaml')
-    TensorPath =  f'/track_{iter}.pt'
-    training_tensor = loadTensor(paths.tensor_path + 
-                                FolderPath + '_val' +
-                                TensorPath)
-    print("\nTensor is Loaded Successfully!!\n")
-
-    ''' Adding validation dataset '''
-    val_videos = torch.randn(30, 3, 10, 32, 32)
+    '''Load Validation Tensor'''
+    # Assuming there is only one Tensor for Validation (If running out of Memory, simply devide the Tensor in smaller Tnsors and randomly choose one of them)
+    FolderPath = f'/{args.csv_file_path.replace("_train.csv", "_val")}'
+    val_tensors = loadTensor(os.path.join(paths.tensor_path + FolderPath, 'track_0.pt'))
     val_text = ["text"] * 30
+    print("\nValidation Tensor has been loaded successfully!!\n")
 
     # Assuming you have your optimizer defined
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
@@ -87,10 +96,10 @@ def main():
         # Validation every checkpoint_interval iterations
         if (iteration + 1) % checkpoint_interval == 0:
             val_loss = 0.0
-            num_val_batches = len(val_videos) // batch_size
+            num_val_batches = len(val_tensors) // batch_size
 
-            for val_batch_start in range(0, len(val_videos), batch_size):
-                val_batch_videos = val_videos[val_batch_start:val_batch_start + batch_size]
+            for val_batch_start in range(0, len(val_tensors), batch_size):
+                val_batch_videos = val_tensors[val_batch_start:val_batch_start + batch_size]
                 val_batch_text = val_text[val_batch_start:val_batch_start + batch_size]
 
                 with torch.no_grad():

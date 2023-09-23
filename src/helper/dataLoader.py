@@ -18,10 +18,11 @@ def read_data(csv_file_path, start_index=0, end_index=10000):
             next(csv_reader, None)
         # Read and return rows within the specified interval, while handling empty rows
         rows = []
-        for row in csv_reader:
+        for row in tqdm(csv_reader, desc="Reading data from CSV ..."):
             if row and start_index <= end_index:
                 rows.append(row)
                 start_index += 1
+        print("\nReading Data Successful!\n")
         return rows
 
 def extract_duration(iso_format):
@@ -118,4 +119,3 @@ def createCustomedVideoCsvFile(video_urls, video_names, csv_filename):
         
         for url, name in zip(video_urls, video_names):
             csv_writer.writerow([url, name])
-            
