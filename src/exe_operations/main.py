@@ -1,17 +1,23 @@
-import torch
-import sys
-from video_diffusion_pytorch import Unet3D, GaussianDiffusion
-from tqdm import trange
-sys.path.append('helper')
-from dataLoader import read_data
-from trainingCheckPoint import getLatestCheckpoint
-sys.path.append('tensorMaker')
-from saveTensor import loadTensor
-sys.path.append('common')
-import paths
+'''!!Use Labs instead!!'''
 import argparse
 import os
-import gc
+import sys
+from tqdm import trange
+import torch
+
+from video_diffusion_pytorch import Unet3D, GaussianDiffusion
+
+# Import local modules
+sys.path.append('../helper')
+from dataLoader import read_data
+from trainingCheckPoint import getLatestCheckpoint
+
+sys.path.append('../tensorMaker')
+from saveTensor import loadTensor
+
+sys.path.append('../common')
+import paths
+
 
 def main():
     parser = argparse.ArgumentParser(description='Main Training Script')
@@ -37,14 +43,13 @@ def main():
         val_text.append(index[1])
     # Delete for memory efficiency purposes
     del validation_rows
-    
-    # garbage collector (Test if this command really helps improve memory efficiency)
-    gc.collect()
 
     '''Load Training Tensor'''
-    last_checkpoint = getLatestCheckpoint(os.path.join(paths.training_checkpoint_dir, args.csv_file_path.replace("_train.csv")))
+    training_yaml = args.csv_file_path.replace("customised", "training").replace("_train.csv", ".yaml")
+    last_checkpoint = getLatestCheckpoint(os.path.join(paths.training_checkpoint_dir + f'/{args.csv_file_path.replace("_train.csv", "")}', training_yaml))
     FolderPath = f'/{args.csv_file_path.replace(".csv", "")}'
     train_tensor = loadTensor(os.path.join(paths.tensor_path + FolderPath, f'track_{last_checkpoint}.pt'))
+    print("\nTraining Tensor has been loaded successfully!!\n")
 
     '''Load Validation Tensor'''
     # Assuming there is only one Tensor for Validation (If running out of Memory, simply devide the Tensor in smaller Tnsors and randomly choose one of them)
@@ -61,7 +66,7 @@ def main():
 
     # Load the latest model
     if last_checkpoint != 0: 
-        model.load_state_dict(torch.load('my_model.pth'))
+        model.load_state_dict(torch.load(os.path.join(paths.model_dir, 'main_model.pth')))
         model.train()  # Set the model in training mode
 
     diffusion = GaussianDiffusion(
@@ -79,7 +84,7 @@ def main():
     num_iterations = 100
     batch_size = 1
     checkpoint_interval = 80
-    checkpoint_path = "model_checkpoint.pth"
+    checkpoint_path = os.path.join(paths.model_dir, 'main_model.pth')
     dataset_size = 9  # Number of training videos
 
     for iteration in trange(num_iterations):
@@ -130,7 +135,6 @@ def main():
             print(f"Checkpoint saved at iteration {iteration + 1}")
 
     # Update the training Checkpoint
-
 
     print("Training finished!")
 

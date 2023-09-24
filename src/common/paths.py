@@ -1,6 +1,7 @@
 import os
 
 # Base directories
+# TODO base directory to be calculated rather than hard-coding
 base_dir = '/mnt/c/Users/ghorb/OneDrive/Desktop/T2V'
 base_data_dir = os.path.join(base_dir, 'data')
 base_src_dir = os.path.join(base_dir, 'src')
@@ -14,3 +15,5 @@ tensor_path = os.path.join(base_data_dir, 'tensors')
 downloader_path = os.path.join(base_src_dir, 'video_preprocessing')
 tensor_gen_path = os.path.join(base_src_dir, 'tensorMaker')
 training_checkpoint_dir = os.path.join(base_data_dir, 'training_checkpoint')
+model_dir = os.path.join(base_data_dir, 'models')
+model_backup_dir = os.path.join(base_data_dir, 'models', 'backups')
