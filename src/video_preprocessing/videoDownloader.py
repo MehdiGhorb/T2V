@@ -7,8 +7,8 @@ python3 your_script.py /path/to/your.csv /path/to/save/videos 10
 import argparse
 from yamlEditor import *
 import sys
-sys.path.append('../helper')
-from dataLoader import *
+sys.path.append('../utils')
+from videoPrepHelper import *
 sys.path.append('../common')
 import paths
 

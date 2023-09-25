@@ -7,8 +7,8 @@ import torch
 import argparse
 from tqdm import tqdm
 import sys
-sys.path.append('../helper')
-from dataLoader import getVideoNames, removeDirContent
+sys.path.append('../utils')
+from videoPrepHelper import getVideoNames, removeDirContent
 from videoAnnotation import *
 sys.path.append('../common')
 import paths

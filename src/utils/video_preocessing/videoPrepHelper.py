@@ -1,6 +1,3 @@
-import sys
-sys.path.append('/helper')
-from videoAnnotation import videoToGIF
 import csv
 import requests
 from tqdm import tqdm

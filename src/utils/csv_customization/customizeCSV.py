@@ -2,7 +2,7 @@
 To use this script run python3 customizeCSV.py {csvfile.csv}
 '''
 
-from dataLoader import createCustomedVideoCsvFile, read_data
+from utils.video_preocessing.videoPrepHelper import createCustomedVideoCsvFile, read_data
 import argparse
 from tqdm import tqdm
 import sys

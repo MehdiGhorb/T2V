@@ -1,0 +1,4 @@
+num_iterations: 100
+batch_size: 1
+checkpoint_interval: 80
+dataset_size: 9

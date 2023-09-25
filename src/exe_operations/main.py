@@ -4,58 +4,39 @@ import os
 import sys
 from tqdm import trange
 import torch
+import yaml
 
 from video_diffusion_pytorch import Unet3D, GaussianDiffusion
 
 # Import local modules
-sys.path.append('../helper')
-from dataLoader import read_data
-from trainingCheckPoint import getLatestCheckpoint
-
-sys.path.append('../tensorMaker')
-from saveTensor import loadTensor
-
 sys.path.append('../common')
 import paths
 
+sys.path.append(paths.utils_dir)
+from training.dataLoader import *
+
+with open(os.path.join(paths.config_dir, 'trainingParams.yaml'), 'r') as f:
+    params = yaml.safe_load(f)
+
+# Use the parameters in your training code
+num_iterations = params['num_iterations']
+batch_size = params['batch_size']
+checkpoint_interval = params['checkpoint_interval']
+dataset_size = params['dataset_size']
 
 def main():
     parser = argparse.ArgumentParser(description='Main Training Script')
     parser.add_argument('csv_file_path', help='Path to the CSV file containing video descriptions')
     args = parser.parse_args()
 
-    # TODO Keep main.py only for training and move the following lines to a separate directory
     '''Read Training Text Data'''
-    training_rows = read_data(os.path.join(paths.base_data_dir + '/csv_files/customised', args.csv_file_path))
-    train_text = []
-    # Read video descriptions
-    for index in training_rows:
-        train_text.append(index[1])
-    # Delete for memory efficiency purposes
-    del training_rows
-    # garbage collector (Test if this command really helps improve memory efficiency)
-
-    '''Read Validation Text Data'''
-    validation_rows = read_data(os.path.join(paths.base_data_dir + '/csv_files/customised', args.csv_file_path.replace("_train", "_val")))
-    val_text = []
-    # Read video descriptions
-    for index in validation_rows:
-        val_text.append(index[1])
-    # Delete for memory efficiency purposes
-    del validation_rows
+    train_text, val_text = loadTrainValTxt(args)
 
     '''Load Training Tensor'''
-    training_yaml = args.csv_file_path.replace("customised", "training").replace("_train.csv", ".yaml")
-    last_checkpoint = getLatestCheckpoint(os.path.join(paths.training_checkpoint_dir + f'/{args.csv_file_path.replace("_train.csv", "")}', training_yaml))
-    FolderPath = f'/{args.csv_file_path.replace(".csv", "")}'
-    train_tensor = loadTensor(os.path.join(paths.tensor_path + FolderPath, f'track_{last_checkpoint}.pt'))
-    print("\nTraining Tensor has been loaded successfully!!\n")
+    train_tensor = loadTrainingTensor(args)
 
     '''Load Validation Tensor'''
-    # Assuming there is only one Tensor for Validation (If running out of Memory, simply devide the Tensor in smaller Tnsors and randomly choose one of them)
-    FolderPath = f'/{args.csv_file_path.replace("_train.csv", "_val")}'
-    val_tensor = loadTensor(os.path.join(paths.tensor_path + FolderPath, 'track_0.pt'))
-    print("\nValidation Tensor has been loaded successfully!!\n")
+    val_tensor = loadValTensor(args)
 
     '''Model'''
     model = Unet3D(
