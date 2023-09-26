@@ -19,6 +19,7 @@ def read_data(csv_file_path, start_index=0, end_index=10000):
             if row and start_index <= end_index:
                 rows.append(row)
                 start_index += 1
+            
         print("\nReading Data Successful!\n")
         return rows
 

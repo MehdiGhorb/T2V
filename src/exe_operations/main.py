@@ -12,8 +12,9 @@ from video_diffusion_pytorch import Unet3D, GaussianDiffusion
 sys.path.append('../common')
 import paths
 
-sys.path.append(paths.utils_dir)
-from training.dataLoader import *
+# TODO: This way of importing is suboptimal
+sys.path.append('../utils/training')
+from dataLoader import *
 
 with open(os.path.join(paths.config_dir, 'trainingParams.yaml'), 'r') as f:
     params = yaml.safe_load(f)

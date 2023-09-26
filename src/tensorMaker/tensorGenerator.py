@@ -7,7 +7,11 @@ import torch
 import argparse
 from tqdm import tqdm
 import sys
-sys.path.append('../utils')
+import warnings
+import yaml
+import os
+
+sys.path.append('../utils/video_preprocessing')
 from videoPrepHelper import getVideoNames, removeDirContent
 from videoAnnotation import *
 sys.path.append('../common')
@@ -15,9 +19,6 @@ import paths
 sys.path.append('../video_preprocessing')
 from yamlEditor import loadMainYamlFile, updateIterationYamlFile
 from saveTensor import saveTensor
-import warnings
-import yaml
-import os
 
 def main():        
     parser = argparse.ArgumentParser(description='Download videos from CSV URLs')
