@@ -5,6 +5,7 @@ import sys
 from tqdm import trange
 import torch
 import yaml
+from torch.optim.lr_scheduler import StepLR
 
 from video_diffusion_pytorch import Unet3D, GaussianDiffusion
 
@@ -13,17 +14,23 @@ sys.path.append('../common')
 import paths
 
 # TODO: This way of importing is suboptimal
-sys.path.append('../utils/training')
+sys.path.append(os.path.join(paths.utils_dir, 'training'))
 from dataLoader import *
 
+'''Load training parameters'''
 with open(os.path.join(paths.config_dir, 'trainingParams.yaml'), 'r') as f:
-    params = yaml.safe_load(f)
+    training_params = yaml.safe_load(f)
 
-# Use the parameters in your training code
-num_iterations = params['num_iterations']
-batch_size = params['batch_size']
-checkpoint_interval = params['checkpoint_interval']
-dataset_size = params['dataset_size']
+'''Load Tensor parameters'''
+with open(os.path.join(paths.config_dir, 'tensorConfig.yaml'), 'r') as f:
+    training_params = yaml.safe_load(f)
+
+'''Training parameters'''
+num_iterations = training_params['num_iterations']
+batch_size = training_params['batch_size']
+checkpoint_interval = training_params['checkpoint_interval']
+dataset_size = training_params['dataset_size']
+checkpoint_path = os.path.join(paths.model_dir, 'main_model.pth')
 
 def main():
     parser = argparse.ArgumentParser(description='Main Training Script')
@@ -31,13 +38,13 @@ def main():
     args = parser.parse_args()
 
     '''Read Training Text Data'''
-    train_text, val_text = loadTrainValTxt(args)
+    train_text, val_text = loadTrainValTxt(args.csv_file_path)
 
     '''Load Training Tensor'''
-    train_tensor = loadTrainingTensor(args)
+    train_tensor = loadTrainingTensor(args.csv_file_path)
 
     '''Load Validation Tensor'''
-    val_tensor = loadValTensor(args)
+    val_tensor = loadValTensor(args.csv_file_path)
 
     '''Model'''
     model = Unet3D(
@@ -47,6 +54,8 @@ def main():
     )
 
     # Load the latest model
+    training_yaml = args.csv_file_path.replace("customised", "training").replace("_train.csv", ".yaml")
+    last_checkpoint = getLatestTrainingCheckpoint(os.path.join(paths.training_checkpoint_dir + f'/{args.csv_file_path.replace("_train.csv", "")}', training_yaml))
     if last_checkpoint != 0: 
         model.load_state_dict(torch.load(os.path.join(paths.model_dir, 'main_model.pth')))
         model.train()  # Set the model in training mode
@@ -61,13 +70,8 @@ def main():
 
     # Assuming you have your optimizer defined
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-
-    # Number of training iterations
-    num_iterations = 100
-    batch_size = 1
-    checkpoint_interval = 80
-    checkpoint_path = os.path.join(paths.model_dir, 'main_model.pth')
-    dataset_size = 9  # Number of training videos
+    # Define a learning rate scheduler
+    scheduler = StepLR(optimizer, step_size=20, gamma=0.5)
 
     for iteration in trange(num_iterations):
 
@@ -85,6 +89,9 @@ def main():
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
+
+        # Update the learning rate
+        scheduler.step()
 
         print(f"Iteration [{iteration}]: Loss = {loss.item()}")
         if iteration % 100 == 0:

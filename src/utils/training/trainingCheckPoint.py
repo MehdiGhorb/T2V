@@ -22,8 +22,8 @@ def getTrainValTxtRange(csv_file:str, last_training_checkpoint:int):
         train_data = yaml.safe_load(train_file)
 
     # Load Validation Txt
-    # Assuming all we only have one validation Tensor
-    file_dir_name = os.path.join(paths.base_download_checkpoint_dir, f"logs_{csv_file.replace('train.csv', 'val')}") 
+    file_dir_name = os.path.join(paths.base_download_checkpoint_dir, f"logs_{csv_file.replace('train.csv', 'val')}")
+    # Assuming we only have one validation Tensor
     file_name = "track_0.yaml"
     with open(os.path.join(file_dir_name, file_name), 'r') as val_file:
         val_data = yaml.safe_load(val_file)

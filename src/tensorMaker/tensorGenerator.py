@@ -39,7 +39,7 @@ def main():
     videos = getVideoNames(paths.base_mp4video_directory)
 
     # Read the config file
-    with open("config_values/config.yaml", "r") as config:
+    with open(os.path.join(paths.config_dir, 'tensorConfig.yaml'), "r") as config:
         tensor_config = yaml.load(config, Loader=yaml.FullLoader)
 
     # Create a sample tensor to compare and remove the unqualified tensors

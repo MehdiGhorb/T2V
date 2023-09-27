@@ -4,29 +4,29 @@ from tqdm import tqdm
 import os
 import glob
 import shutil
+import pandas as pd
 
 def read_data(csv_file_path, start_index=0, end_index=10000):
-    with open(csv_file_path, "r") as file:
-        csv_reader = csv.reader(file)
-        # Read the header row if it exists
-        skip_header = next(csv_reader, None)
-        # Skip rows until the start index
-        for _ in range(start_index):
-            next(csv_reader, None)
-        # Read and return rows within the specified interval, while handling empty rows
-        rows = []
-        for row in tqdm(csv_reader, desc="Reading data from CSV ..."):
-            if row and start_index <= end_index:
-                rows.append(row)
-                start_index += 1
-            
-        print("\nReading Data Successful!\n")
-        return rows
+    try:
+        df = pd.read_csv(csv_file_path)
+        if start_index > len(df):
+            return []
 
-def extract_duration(iso_format):
-    duration = parse_duration(iso_format)
-    duration_seconds = duration.total_seconds()
-    return duration_seconds
+        # Ensure end_index does not exceed the dataframe length
+        end_index = min(end_index, len(df) - 1)
+        
+        # Initialize the progress bar
+        with tqdm(total=end_index - start_index + 1, desc="Reading data from CSV ...") as pbar:
+            selected_rows = []
+            for i, row in df.iloc[start_index:end_index + 1].iterrows():
+                selected_rows.append(row.tolist())
+                pbar.update(1)
+            
+            return selected_rows
+
+    except FileNotFoundError:
+        print(f"File {csv_file_path} not found.")
+        return []
 
 def download_videos(video_urls: list[str], dir_path):
     failed_downloads = []

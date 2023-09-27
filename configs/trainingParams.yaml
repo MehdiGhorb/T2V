@@ -1,4 +1,9 @@
 num_iterations: 100
+time_steps : 1000
 batch_size: 1
 checkpoint_interval: 80
 dataset_size: 9
+learning_rate : 0.001
+learning_rate_step_size : 20
+learning_rate_gamma : 0.5
+training_loss_type : 'l1' # or l2
