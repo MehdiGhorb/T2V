@@ -60,7 +60,3 @@ def loadValTensor(csv_file_path):
     print("\nValidation Tensor has been loaded successfully!!\n")
 
     return val_tensor
-
-t, v = loadTrainValTxt("customised_results_2M_train.csv")
-print(t)
-print(v)
