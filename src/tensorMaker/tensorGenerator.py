@@ -25,8 +25,8 @@ def main():
     parser.add_argument('csv_file_name', help='Path to the CSV file containing video URLs')
     args = parser.parse_args()
 
-    main_yaml = loadMainYamlFile(os.path.join(paths.base_download_checkpoint_dir + "/main_customised", f"track_{args.csv_file_name.replace('.csv', '')}.yaml"))
-    video_yamlFile = os.path.join(paths.base_download_checkpoint_dir + f'/logs_{args.csv_file_name.replace(".csv", "")}', f'track_{main_yaml["Total_iterations"]-1}.yaml')
+    main_yaml = loadMainYamlFile(os.path.join(paths.BASE_DOWNLOAD_CHECKPOINT_DIR + "/main_customised", f"track_{args.csv_file_name.replace('.csv', '')}.yaml"))
+    video_yamlFile = os.path.join(paths.BASE_DOWNLOAD_CHECKPOINT_DIR + f'/logs_{args.csv_file_name.replace(".csv", "")}', f'track_{main_yaml["Total_iterations"]-1}.yaml')
     # Create an empty dictionary to store tensors
     gif_dict = {}
     # gif index
@@ -36,10 +36,10 @@ def main():
     # Indexes to delete (unqualified tensors)
     indexes_to_delete = []
     # get all the video names
-    videos = getVideoNames(paths.base_mp4video_directory)
+    videos = getVideoNames(paths.BASE_MP4VIDEO_DIRECTORY)
 
     # Read the config file
-    with open(os.path.join(paths.config_dir, 'tensorConfig.yaml'), "r") as config:
+    with open(os.path.join(paths.CONFIG_DIR, 'tensorConfig.yaml'), "r") as config:
         tensor_config = yaml.load(config, Loader=yaml.FullLoader)
 
     # Create a sample tensor to compare and remove the unqualified tensors
@@ -67,16 +67,16 @@ def main():
                                            tensor_config["length"], 
                                            tensor_config["frame_num"])
             # Convert the videos to GIFs
-            create_gif(reduced_length, paths.final_gif_directory + f"/Gif_{gif_index}.gif")
+            create_gif(reduced_length, paths.FINAL_GIF_DIRECTORY + f"/Gif_{gif_index}.gif")
 
             # create the dictionary of tensors
             gif_name = f"gif_{gif_index}"
-            gif_value = paths.final_gif_directory + f"/Gif_{gif_index}.gif"
+            gif_value = paths.FINAL_GIF_DIRECTORY + f"/Gif_{gif_index}.gif"
             gif_dict[gif_name] = gif_value
             gif_index += 1
 
     # Remove mp4 videos
-    removeDirContent(paths.base_mp4video_directory)
+    removeDirContent(paths.BASE_MP4VIDEO_DIRECTORY)
 
     # Convert GIFs to Tensors
     for gif in tqdm(gif_dict.values(), desc="Converting GIFs to Tensors... "):
@@ -114,10 +114,10 @@ def main():
     
     # Save the tensor
     saveTensor(tensor_list=tensor_list,
-               tensor_path=os.path.join(paths.tensor_path + f'/{args.csv_file_name.replace(".csv", "")}', f'track_{main_yaml["Total_iterations"]-1}.pt'))
+               tensor_path=os.path.join(paths.TENSOR_PATH + f'/{args.csv_file_name.replace(".csv", "")}', f'track_{main_yaml["Total_iterations"]-1}.pt'))
     
     # Remove GIFs
-    removeDirContent(paths.final_gif_directory)
+    removeDirContent(paths.FINAL_GIF_DIRECTORY)
 
     print("\nTensor saved successfully!\n")
 

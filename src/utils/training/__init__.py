@@ -1,3 +1,3 @@
-from training.dataLoader import *
-from training.earlyStopping import *
-from training.trainingCheckPoint import *
+from .dataLoader import *
+from .earlyStopping import *
+from .trainingCheckPoint import *

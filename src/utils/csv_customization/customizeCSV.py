@@ -15,7 +15,7 @@ def main():
     parser.add_argument('csv_file_name', help='Path to the CSV file containing video URLs')
     args = parser.parse_args()
 
-    rows = read_data(os.path.join(paths.base_data_dir + "/csv_files/original", args.csv_file_name), start_index=0, end_index=11000000)
+    rows = read_data(os.path.join(paths.BASE_DATA_DIR + "/csv_files/original", args.csv_file_name), start_index=0, end_index=11000000)
 
     video_urls = []
     video_desc = []
@@ -30,7 +30,7 @@ def main():
     # Format: {Video URLs, Desc}
     createCustomedVideoCsvFile(video_urls=video_urls, 
                                video_names=video_desc, 
-                               csv_filename=os.path.join(paths.base_data_dir + "/csv_files/customised", f"customised_{args.csv_file_name}"))
+                               csv_filename=os.path.join(paths.BASE_DATA_DIR + "/csv_files/customised", f"customised_{args.csv_file_name}"))
 
 if __name__ == "__main__":
     main()

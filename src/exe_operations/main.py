@@ -6,31 +6,39 @@ from tqdm import trange
 import torch
 import yaml
 from torch.optim.lr_scheduler import StepLR
-
 from video_diffusion_pytorch import Unet3D, GaussianDiffusion
 
 # Import local modules
+# TODO: This way of importing is suboptimal
 sys.path.append('../common')
 import paths
-
-# TODO: This way of importing is suboptimal
-sys.path.append(os.path.join(paths.utils_dir, 'training'))
+sys.path.append(os.path.join(paths.UTILS_DIR, 'training'))
 from dataLoader import *
+from earlyStopping import EarlyStopping
 
 '''Load training parameters'''
-with open(os.path.join(paths.config_dir, 'trainingParams.yaml'), 'r') as f:
+with open(os.path.join(paths.CONFIG_DIR, 'trainingParams.yaml'), 'r') as f:
     training_params = yaml.safe_load(f)
 
 '''Load Tensor parameters'''
-with open(os.path.join(paths.config_dir, 'tensorConfig.yaml'), 'r') as f:
-    training_params = yaml.safe_load(f)
+with open(os.path.join(paths.CONFIG_DIR, 'tensorConfig.yaml'), 'r') as f:
+    tensor_params = yaml.safe_load(f)
 
 '''Training parameters'''
-num_iterations = training_params['num_iterations']
-batch_size = training_params['batch_size']
-checkpoint_interval = training_params['checkpoint_interval']
-dataset_size = training_params['dataset_size']
-checkpoint_path = os.path.join(paths.model_dir, 'main_model.pth')
+NUM_ITERATIONS = int(training_params['num_iterations'])
+TIME_STEPS = int(training_params['time_steps'])
+BATCH_SIZE = int(training_params['batch_size'])
+CHECKPOINT_INTERVAL = int(training_params['checkpoint_interval'])
+DATASET_SIZE = int(training_params['dataset_size'])
+TRAINING_LOSS_TYPE = training_params['training_loss_type']
+CHECKPOINT_PATH = os.path.join(paths.MODEL_DIR, 'main_model.pth')
+
+'''Tensor Parameters'''
+IMAGE_SIZE = int(tensor_params['frame_size']/2)
+NUM_FRAMES = int(tensor_params['frame_num'])
+
+'''Early Stopping instance'''
+early_stopping = EarlyStopping(patience=20, verbose=True, delta=0.001, path=os.path.join(paths.MODEL_DIR, 'main_model.pth'))
 
 def main():
     parser = argparse.ArgumentParser(description='Main Training Script')
@@ -55,17 +63,17 @@ def main():
 
     # Load the latest model
     training_yaml = args.csv_file_path.replace("customised", "training").replace("_train.csv", ".yaml")
-    last_checkpoint = getLatestTrainingCheckpoint(os.path.join(paths.training_checkpoint_dir + f'/{args.csv_file_path.replace("_train.csv", "")}', training_yaml))
+    last_checkpoint = getLatestTrainingCheckpoint(os.path.join(paths.TRAINING_CHECKPOINT_DIR + f'/{args.csv_file_path.replace("_train.csv", "")}', training_yaml))
     if last_checkpoint != 0: 
-        model.load_state_dict(torch.load(os.path.join(paths.model_dir, 'main_model.pth')))
+        model.load_state_dict(torch.load(os.path.join(paths.MODEL_DIR, 'main_model.pth')))
         model.train()  # Set the model in training mode
 
     diffusion = GaussianDiffusion(
         model,
-        image_size=64,    # height and width of frames
-        num_frames=10,    # number of video frames
-        timesteps=1000,   # number of steps
-        loss_type='l1'    # L1 or L2
+        image_size=IMAGE_SIZE,    # height and width of frames
+        num_frames=NUM_FRAMES,    # number of video frames
+        timesteps=TIME_STEPS,   # number of steps
+        loss_type=TRAINING_LOSS_TYPE    # L1 or L2
     )
 
     # Assuming you have your optimizer defined
@@ -73,10 +81,10 @@ def main():
     # Define a learning rate scheduler
     scheduler = StepLR(optimizer, step_size=20, gamma=0.5)
 
-    for iteration in trange(num_iterations):
+    for iteration in trange(NUM_ITERATIONS):
 
         # Sample indices for the current batch
-        batch_indices = torch.randint(0, dataset_size, (batch_size,))
+        batch_indices = torch.randint(0, DATASET_SIZE, (BATCH_SIZE,))
         
         # Sample a batch of training data
         batch_videos = train_tensor[batch_indices]
@@ -95,23 +103,31 @@ def main():
 
         print(f"Iteration [{iteration}]: Loss = {loss.item()}")
         if iteration % 100 == 0:
-            print(f"Train Iteration [{iteration}/{num_iterations}]: Loss = {loss.item()}")
+            print(f"Train Iteration [{iteration}/{NUM_ITERATIONS}]: Loss = {loss.item()}")
             
         # Validation every checkpoint_interval iterations
-        if (iteration + 1) % checkpoint_interval == 0:
+        if (iteration + 1) % CHECKPOINT_INTERVAL == 0:
             val_loss = 0.0
-            num_val_batches = len(val_tensor) // batch_size
+            num_val_batches = len(val_tensor) // BATCH_SIZE
 
-            for val_batch_start in range(0, len(val_tensor), batch_size):
-                val_batch_videos = val_tensor[val_batch_start:val_batch_start + batch_size]
-                val_batch_text = val_text[val_batch_start:val_batch_start + batch_size]
+            for val_batch_start in range(0, len(val_tensor), BATCH_SIZE):
+                val_batch_videos = val_tensor[val_batch_start:val_batch_start + BATCH_SIZE]
+                val_batch_text = val_text[val_batch_start:val_batch_start + BATCH_SIZE]
 
                 with torch.no_grad():
                     val_batch_loss = diffusion(val_batch_videos, cond=val_batch_text)
                     val_loss += val_batch_loss.item()
 
             val_loss /= num_val_batches
-            print(f"Validation Iteration [{iteration}/{num_iterations}]: Loss = {val_loss}")
+            print(f"Validation Iteration [{iteration}/{NUM_ITERATIONS}]: Loss = {val_loss}")
+
+            # Use the EarlyStopping object to track validation loss
+            early_stopping(val_loss, model)
+
+            # Check if early stopping criteria are met
+            if early_stopping.early_stop:
+                print("Early stopping triggered.")
+                break  # Exit the training loop
             
             # Save checkpoint
             torch.save({
@@ -120,7 +136,7 @@ def main():
                 'optimizer_state_dict': optimizer.state_dict(),
                 'loss': loss,
                 'val_loss': val_loss,
-            }, checkpoint_path)
+            }, CHECKPOINT_PATH)
             print(f"Checkpoint saved at iteration {iteration + 1}")
 
     # Update the training Checkpoint

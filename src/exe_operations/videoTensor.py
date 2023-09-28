@@ -5,10 +5,10 @@ sys.path.append('../common')
 import paths
 
 # Download Videos
-downloader_path = paths.downloader_path
+downloader_path = paths.DOWNLOADER_PATH
 videoDownloader = "videoDownloader.py"
 # Generate tensors and remove the videos
-tensor_gen_path = paths.tensor_gen_path
+tensor_gen_path = paths.TENSOR_GEN_PATH
 tensorGenerator = "tensorGenerator.py"
 
 def main():

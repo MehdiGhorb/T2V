@@ -3,22 +3,23 @@ import sys
 
 sys.path.append('../../common')
 import paths
-sys.path.append(paths.tensor_gen_path)
+sys.path.append(paths.TENSOR_GEN_PATH)
+from saveTensor import loadTensor
 from saveTensor import loadTensor
 from trainingCheckPoint import getLatestTrainingCheckpoint, getTrainValTxtRange
-sys.path.append(os.path.join(paths.utils_dir, 'video_preprocessing'))
+sys.path.append(os.path.join(paths.UTILS_DIR, 'video_preprocessing'))
 from videoPrepHelper import read_data
 
 def loadTrainValTxt(csv_file_path):
 
     '''Variables'''
     training_yaml = csv_file_path.replace("customised", "training").replace("_train.csv", ".yaml")
-    last_checkpoint = getLatestTrainingCheckpoint(os.path.join(paths.training_checkpoint_dir + f'/{csv_file_path.replace("_train.csv", "")}', training_yaml))
+    last_checkpoint = getLatestTrainingCheckpoint(os.path.join(paths.TRAINING_CHECKPOINT_DIR + f'/{csv_file_path.replace("_train.csv", "")}', training_yaml))
     train_txt_indexes, val_txt_indexes = getTrainValTxtRange(csv_file=csv_file_path, 
                                                             last_training_checkpoint=last_checkpoint)
     
     '''Read Training Text Data'''
-    training_rows = read_data(os.path.join(paths.base_data_dir + '/csv_files/customised', csv_file_path),
+    training_rows = read_data(os.path.join(paths.BASE_DATA_DIR + '/csv_files/customised', csv_file_path),
                               start_index=train_txt_indexes[0]-2,
                               end_index=train_txt_indexes[1]-2)
     train_text = []
@@ -30,7 +31,7 @@ def loadTrainValTxt(csv_file_path):
     # garbage collector (Test if it really helps improve memory efficiency)
 
     '''Read Validation Text Data'''
-    validation_rows = read_data(os.path.join(paths.base_data_dir + '/csv_files/customised', csv_file_path.replace("_train", "_val")),
+    validation_rows = read_data(os.path.join(paths.BASE_DATA_DIR + '/csv_files/customised', csv_file_path.replace("_train", "_val")),
                                 start_index=val_txt_indexes[0]-2,
                                 end_index=val_txt_indexes[1]-2)
     val_text = []
@@ -45,9 +46,9 @@ def loadTrainValTxt(csv_file_path):
 def loadTrainingTensor(csv_file_path):
     '''Load Training Tensor'''
     training_yaml = csv_file_path.replace("customised", "training").replace("_train.csv", ".yaml")
-    last_checkpoint = getLatestTrainingCheckpoint(os.path.join(paths.training_checkpoint_dir + f'/{csv_file_path.replace("_train.csv", "")}', training_yaml))
+    last_checkpoint = getLatestTrainingCheckpoint(os.path.join(paths.TRAINING_CHECKPOINT_DIR + f'/{csv_file_path.replace("_train.csv", "")}', training_yaml))
     FolderPath = f'/{csv_file_path.replace(".csv", "")}'
-    train_tensor = loadTensor(os.path.join(paths.tensor_path + FolderPath, f'track_{last_checkpoint}.pt'))
+    train_tensor = loadTensor(os.path.join(paths.TENSOR_PATH + FolderPath, f'track_{last_checkpoint}.pt'))
     print("\nTraining Tensor has been loaded successfully!!\n")
 
     return train_tensor
@@ -56,7 +57,7 @@ def loadValTensor(csv_file_path):
     '''Load Validation Tensor'''
     # Assuming there is only one Tensor for Validation (If running out of Memory, simply divide the Tensor into smaller Tensors and randomly choose one of them)
     FolderPath = f'/{csv_file_path.replace("_train.csv", "_val")}'
-    val_tensor = loadTensor(os.path.join(paths.tensor_path + FolderPath, 'track_0.pt'))
+    val_tensor = loadTensor(os.path.join(paths.TENSOR_PATH + FolderPath, 'track_0.pt'))
     print("\nValidation Tensor has been loaded successfully!!\n")
 
     return val_tensor
