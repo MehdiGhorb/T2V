@@ -2,7 +2,10 @@ import os
 import yaml
 import unittest
 import sys
-sys.path.append('/mnt/c/Users/ghorb/OneDrive/Desktop/T2V/video_preprocessing')
+
+sys.path.append('src/common')
+import paths
+sys.path.append(os.path.join(paths.BASE_SRC_DIR, 'video_preprocessing'))
 from yamlEditor import createOrLoadYamlFile, loadMainYamlFile, updateMainYamlFile, updateIterationYamlFile, extractKeysFromYaml
 
 class TestYamlFunctions(unittest.TestCase):

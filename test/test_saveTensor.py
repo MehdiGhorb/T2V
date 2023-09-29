@@ -1,6 +1,12 @@
 import unittest
 import torch
 import os
+import sys
+
+sys.path.append('src/common')
+import paths
+sys.path.append(paths.TENSOR_GEN_PATH)
+from saveTensor import saveTensor, loadTensor
 
 class TestTensorFunctions(unittest.TestCase):
 
@@ -24,7 +30,7 @@ class TestTensorFunctions(unittest.TestCase):
     def test_save_invalid_input(self):
         # Test saving with an invalid input
         with self.assertRaises(Exception) as context:
-            saveTensor([torch.tensor(1), 'not_a_tensor'], self.test_path)
+            saveTensor([torch.tensor(1), 'not_a_tensor'], 'not_a_tensor')
 
         self.assertTrue("Error: stack expects each tensor to be equal size" in str(context.exception))
 

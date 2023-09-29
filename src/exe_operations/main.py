@@ -45,13 +45,9 @@ def main():
     parser.add_argument('csv_file_path', help='Path to the CSV file containing video descriptions')
     args = parser.parse_args()
 
-    '''Read Training Text Data'''
+    '''Read Training Text Data, Load Training/Validation Tensor'''
     train_text, val_text = loadTrainValTxt(args.csv_file_path)
-
-    '''Load Training Tensor'''
     train_tensor = loadTrainingTensor(args.csv_file_path)
-
-    '''Load Validation Tensor'''
     val_tensor = loadValTensor(args.csv_file_path)
 
     '''Model'''
@@ -62,8 +58,8 @@ def main():
     )
 
     # Load the latest model
-    training_yaml = args.csv_file_path.replace("customised", "training").replace("_train.csv", ".yaml")
-    last_checkpoint = getLatestTrainingCheckpoint(os.path.join(paths.TRAINING_CHECKPOINT_DIR + f'/{args.csv_file_path.replace("_train.csv", "")}', training_yaml))
+    TRAINING_YAML = args.csv_file_path.replace("customised", "training").replace("_train.csv", ".yaml")
+    last_checkpoint = getLatestTrainingCheckpoint(os.path.join(paths.TRAINING_CHECKPOINT_DIR + f'/{args.csv_file_path.replace("_train.csv", "")}', TRAINING_YAML))
     if last_checkpoint != 0: 
         model.load_state_dict(torch.load(os.path.join(paths.MODEL_DIR, 'main_model.pth')))
         model.train()  # Set the model in training mode
@@ -139,9 +135,14 @@ def main():
             }, CHECKPOINT_PATH)
             print(f"Checkpoint saved at iteration {iteration + 1}")
 
-    # Update the training Checkpoint
+    # Update training Checkpoint
+    with open(os.path.join(paths.TRAINING_CHECKPOINT_DIR + f'/{args.csv_file_path.replace("_train.csv", "")}', TRAINING_YAML), "r") as f:
+        yaml_data = yaml.load(f, Loader=yaml.FullLoader)
+    yaml_data["Total_iterations"] = yaml_data["Total_iterations"] + 1
+    with open("my_yaml_file.yaml", "w") as f:
+        yaml.dump(yaml_data, f)
 
-    print("Training finished!")
+    print(" \n'''Training finished'''\n ")
 
 if __name__ == "__main__":
     main()

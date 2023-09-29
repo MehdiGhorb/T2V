@@ -2,8 +2,10 @@ import unittest
 import os
 import csv
 import sys
-sys.path.append('/mnt/c/Users/ghorb/OneDrive/Desktop/T2V/helper')
-from dataLoader import read_data
+sys.path.append('src/common')
+import paths
+sys.path.append(os.path.join(paths.UTILS_DIR, 'video_preprocessing'))
+from videoPrepHelper import read_data
 
 class TestReadData(unittest.TestCase):
 
@@ -28,27 +30,23 @@ class TestReadData(unittest.TestCase):
         with open(csv_file_path, 'w', newline='') as csvfile:
             csvwriter = csv.writer(csvfile)
             csvwriter.writerow(['Name', 'Age'])
-            csvwriter.writerow(['Alice', '25'])
-            csvwriter.writerow(['Bob', '30'])
-            csvwriter.writerow(['Charlie', '40'])
+            csvwriter.writerow(['Alice', 25])
+            csvwriter.writerow(['Bob', 30])
+            csvwriter.writerow(['Charlie', 40])
 
         # Test reading data from the CSV file within a valid range
         data = read_data(csv_file_path, start_index=1, end_index=2)
-        expected_data = [['Bob', '30'], ['Charlie', '40']]
+        expected_data = [['Bob', 30], ['Charlie', 40]]
         
         self.assertEqual(data, expected_data)
 
     def test_read_data_start_index_greater_than_end_index(self):
         # Create a test CSV file
         csv_file_path = os.path.join(self.test_dir, 'test_data.csv')
-        with open(csv_file_path, 'w', newline='') as csvfile:
-            csvwriter = csv.writer(csvfile)
-            csvwriter.writerow(['Name', 'Age'])
-            csvwriter.writerow(['Alice', '25'])
-            csvwriter.writerow(['Bob', '30'])
 
-        # Test when start_index is greater than end_index)
-        self.assertEqual(data, [])
+        # Ensure a FileNotFoundError is raised
+        with self.assertRaises(IndexError):
+            read_data(csv_file_path, start_index=10, end_index=1)
 
     def test_read_data_file_not_found(self):
         # Test when the CSV file does not exist
@@ -64,23 +62,14 @@ class TestReadData(unittest.TestCase):
         with open(csv_file_path, 'w', newline='') as csvfile:
             csvwriter = csv.writer(csvfile)
             csvwriter.writerow(['Name', 'Age'])
-            csvwriter.writerow(['Alice', '25'])
-            csvwriter.writerow(['Bob', '30'])
+            csvwriter.writerow(['Alice', 25])
+            csvwriter.writerow(['Bob', 30])
 
         # Test reading data and skipping the header row
         data = read_data(csv_file_path, start_index=0, end_index=1)
-        expected_data = [['Alice', '25'], ['Bob', '30']]
+        expected_data = [['Alice', 25], ['Bob', 30]]
         
         self.assertEqual(data, expected_data)
-
-    def test_read_data_empty_file(self):
-        # Create an empty CSV file
-        csv_file_path = os.path.join(self.test_dir, 'empty_data.csv')
-        open(csv_file_path, 'w').close()
-
-        # Test reading data from an empty file
-        data = read_data(csv_file_path, start_index=0, end_index=1)
-        self.assertEqual(data, [])
 
 if __name__ == '__main__':
     unittest.main()

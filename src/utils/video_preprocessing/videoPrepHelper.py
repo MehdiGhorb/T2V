@@ -7,6 +7,8 @@ import shutil
 import pandas as pd
 
 def read_data(csv_file_path, start_index=0, end_index=10000):
+    if start_index > end_index:
+        raise IndexError
     try:
         df = pd.read_csv(csv_file_path)
         if start_index > len(df):
@@ -25,8 +27,7 @@ def read_data(csv_file_path, start_index=0, end_index=10000):
             return selected_rows
 
     except FileNotFoundError:
-        print(f"File {csv_file_path} not found.")
-        return []
+        raise FileNotFoundError
 
 def download_videos(video_urls: list[str], dir_path):
     failed_downloads = []
