@@ -14,11 +14,16 @@ import os
 sys.path.append('../utils/video_preprocessing')
 from videoPrepHelper import getVideoNames, removeDirContent
 from videoAnnotation import *
+
 sys.path.append('../common')
 import paths
+
 sys.path.append('../video_preprocessing')
 from yamlEditor import loadMainYamlFile, updateIterationYamlFile
 from saveTensor import saveTensor
+
+sys.path.append(paths.CLOUD_UTILS)
+from cloudUtils import uploadYAML, getFolderIDByName, uploadTensor
 
 def main():        
     parser = argparse.ArgumentParser(description='Download videos from CSV URLs')
@@ -110,10 +115,27 @@ def main():
                                 failed_indexes=failed_indexes,
                                 total_videos=total_videos,
                                 video_checkpoint_from_to=video_checkpoint_range)
-    
+        
     # Save the tensor
     saveTensor(tensor_list=tensor_list,
                tensor_path=os.path.join(paths.TENSOR_PATH + f'/{args.csv_file_name.replace(".csv", "")}', f'track_{main_yaml["Total_iterations"]-1}.pt'))
+    # Upload the tensor YAML file to Drive
+    with open(paths.DRIVE_FOLDER_IDS) as temp_id:
+        folderIDs = yaml.load(temp_id, Loader=yaml.FullLoader)
+    # Upload Tensor
+    folder_id = getFolderIDByName(folderYAML=folderIDs, 
+                                  name=f'{args.csv_file_name.replace(".csv", "")}')
+    tensor_ID = uploadTensor(file_path=os.path.join(paths.TENSOR_PATH + f'/{args.csv_file_name.replace(".csv", "")}', f'track_{main_yaml["Total_iterations"]-1}.pt'), 
+                             folder_id=folder_id,
+                             file_name_to_upload=f'track_{main_yaml["Total_iterations"]-1}.pt'
+                            )
+
+    folder_id = getFolderIDByName(folderYAML=folderIDs, 
+                                  name=f'logs_{args.csv_file_name.replace(".csv", "")}')
+    uploadYAML(file_path=video_yamlFile, 
+                    folder_id=folder_id,
+                    file_name_to_upload=f'track_{main_yaml["Total_iterations"]-1}.yaml',
+                    tensor_id=tensor_ID)
     
     # Remove GIFs
     removeDirContent(paths.FINAL_GIF_DIRECTORY)

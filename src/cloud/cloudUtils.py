@@ -2,9 +2,14 @@ from __future__ import print_function
 import sys
 import os.path
 from tqdm import tqdm
+import yaml
 
 sys.path.append('../common')
 import paths
+
+sys.path.append(paths.DOWNLOADER_PATH)
+from yamlEditor import updateIterationYamlFile
+
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
@@ -23,30 +28,63 @@ def authenticate(token):
     else:
         raise FileNotFoundError
 
-def uploadFile(file_name, data_type):
-    """Insert new file.
-    Returns : Id's of the file uploaded
+def uploadYAML(file_path, folder_id, file_name_to_upload, tensor_id=None):
+    """Insert a new file into a specific folder on Google Drive with an optional new name.
+    Returns: Id of the file uploaded.
     """
-    token = os.path.join(paths.CLOUD_CREDS, 'token.json')
-    creds = authenticate(token)
+    # Authenticate
+    creds = authenticate(os.path.join(paths.CLOUD_CREDS, 'token.json'))
+
+    # Add Tensor ID to track yaml
+    if tensor_id != None:
+        with open(file_path) as temp_yaml:
+            track_yaml = yaml.load(temp_yaml, Loader=yaml.FullLoader)
+        track_yaml['track_tensor_cloud_ID'] = tensor_id  # Add the temporary file ID to the YAML data
+        with open(file_path, 'w') as updated_yaml_file:
+            yaml.dump(track_yaml, updated_yaml_file, default_flow_style=False)
+
     try:
-        # create drive api client
+        # Create drive API client
         service = build('drive', 'v3', credentials=creds)
+        # Create the file with a temporary name
+        file_metadata = {
+            'name': file_name_to_upload,
+            'parents': [folder_id]  # Specify the folder ID here
+        }
+        media = MediaFileUpload(file_path, mimetype=DATA_TYPE['yaml'])
+        file = service.files().create(
+            body=file_metadata, media_body=media, fields='id'
+        ).execute()
 
-        file_metadata = {'name': file_name}
-        media = MediaFileUpload(file_name,
-                                mimetype=data_type)
-        # pylint: disable=maybe-no-member
-        file = service.files().create(body=file_metadata, media_body=media,
-                                      fields='id').execute()
-        print(F'File ID: {file.get("id")}')
+        print(F'YAML File (ID: {file.get("id")}) upload Complete.')
 
-    except HttpError as error:
-        print(F'An error occurred: {error}')
-        file = None
+    except HttpError as e:
+        print(F'An error occurred: {str(e)}')
 
-    return file.get('id')
+def uploadTensor(file_path, folder_id, file_name_to_upload):
+    # Authenticate
+    creds = authenticate(os.path.join(paths.CLOUD_CREDS, 'token.json'))
 
+    try:
+        # Create drive API client
+        service = build('drive', 'v3', credentials=creds)
+        file_metadata = {
+            'name': file_name_to_upload,
+            'parents': [folder_id]  # Specify the folder ID here
+        }
+
+        media = MediaFileUpload(file_path, mimetype=DATA_TYPE['tensor'])
+        file = service.files().create(
+            body=file_metadata, media_body=media, fields='id'
+        ).execute()
+        file_id = file.get("id")  # Get the Tensor cloud ID
+
+        print(F'Tensor File (ID: {file_id}) upload Complete.')
+
+    except HttpError as e:
+        print(F'An error occurred: {str(e)}')
+    
+    return file_id      
 
 def downloadFile(file_id, save_path):
     """Downloads a file
@@ -81,10 +119,6 @@ def downloadFile(file_id, save_path):
     except HttpError as error:
         print(F'An error occurred: {error}')
         return False
-
-import os
-
-import os
 
 def uploadDir(root_folder_path, parent_folder_id=None):
     """Uploads a directory with its subdirectories and files, preserving the structure.
@@ -137,6 +171,39 @@ def uploadDir(root_folder_path, parent_folder_id=None):
 
     return parent_folder_id
 
+def updateFile(file_name, new_content_path):
+    token = os.path.join(paths.CLOUD_CREDS, 'token.json')
+    creds = authenticate(token)
+    try:
+        # Create Google Drive API client
+        service = build('drive', 'v3', credentials=creds)
 
-if __name__ == '__main__':
-    uploadDir(root_folder_path='../../data/training_checkpoint')
+        # Find the existing file by name
+        results = service.files().list(q=f"name='{file_name}'").execute()
+        files = results.get('files', [])
+
+        if not files:
+            print(f"No file with the name '{file_name}' found.")
+            return
+
+        # Assume we are updating the first matching file, but you might need to specify further criteria
+        file = files[0]
+
+        # Update the file's content
+        media = MediaFileUpload(new_content_path, mimetype=file['mimeType'])
+        service.files().update(
+            fileId=file['id'],
+            media_body=media
+        ).execute()
+
+        print(f"File '{file_name}' updated successfully.")
+
+    except HttpError as error:
+        print(f'An error occurred: {error}')
+
+# Function to get folder ID by name
+def getFolderIDByName(folderYAML, name):
+    for folder in folderYAML['folders']:
+        if folder['name'] == name:
+            return folder['id']
+    return None

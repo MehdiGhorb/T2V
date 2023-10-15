@@ -53,7 +53,7 @@ def updateMainYamlFile(file_path, source: str, total_iterations: int, total_vide
     with open(file_path, 'w') as yaml_file:
         yaml.dump(data, yaml_file, default_flow_style=False)
 
-def updateIterationYamlFile(file_path, source: str, failed_indexes: list[int], total_videos: int, video_checkpoint_from_to: list[int]):
+def updateIterationYamlFile(file_path, source: str, failed_indexes: list[int], total_videos: int, video_checkpoint_from_to: list[int], track_cloud_ID=None):
     # Load the YAML content from the file into a Python dictionary
     with open(file_path, 'r') as yaml_file:
         data = yaml.safe_load(yaml_file)
@@ -63,6 +63,9 @@ def updateIterationYamlFile(file_path, source: str, failed_indexes: list[int], t
     data["failed_indexes"] = failed_indexes
     data["total_videos"] = total_videos
     data["video_checkpoint_from_to"] = video_checkpoint_from_to
+
+    if track_cloud_ID != None:
+        data["File_ID"] = track_cloud_ID
 
     # Write the updated data back to the YAML file
     with open(file_path, 'w') as yaml_file:

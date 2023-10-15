@@ -3,18 +3,17 @@ Download the videos by providing the csv path to the URLs and a path to save the
 Run this in Shell or use Jupyter notebook:
 python3 your_script.py /path/to/your.csv /path/to/save/videos 10
 '''
-
 import argparse
 from yamlEditor import *
 import sys
+
 sys.path.append('../utils/video_preprocessing')
 from videoPrepHelper import *
 sys.path.append('../common')
 import paths
+sys.path.append(paths.CLOUD_UTILS)
+from cloudUtils import uploadYAML, getFolderIDByName
 
-#base_mp4video_directory = '../original_videos'
-#base_data_dir = '../data/'
-#base_download_checkpoint_dir = '../download_checkpoint/'
 
 def main():
     parser = argparse.ArgumentParser(description='Download videos from CSV URLs')
@@ -25,6 +24,7 @@ def main():
     # Read data from main YAML
     main_yaml = loadMainYamlFile(os.path.join(paths.BASE_DOWNLOAD_CHECKPOINT_DIR + "/main_customised", f"track_{args.csv_file_name.replace('.csv', '')}.yaml"))
     total_number_of_videos = main_yaml['Total_video_checkpoint']
+    number_of_iterations = main_yaml['Total_iterations']
 
     rows = read_data(os.path.join(paths.BASE_DATA_DIR + "/csv_files/customised", args.csv_file_name), 
                      start_index=total_number_of_videos, 
@@ -51,7 +51,8 @@ def main():
                             video_checkpoint_from_to=[total_number_of_videos+2, args.num_videos + total_number_of_videos+1])
 
     # Update main YAML file
-    updateMainYamlFile(os.path.join(paths.BASE_DOWNLOAD_CHECKPOINT_DIR + "/main_customised", f"track_{args.csv_file_name.replace('.csv', '')}.yaml"),
+    main_yaml_file = os.path.join(paths.BASE_DOWNLOAD_CHECKPOINT_DIR + "/main_customised", f"track_{args.csv_file_name.replace('.csv', '')}.yaml")
+    updateMainYamlFile(main_yaml_file,
                        source=args.csv_file_name.replace('.csv', ''),
                        total_iterations=main_yaml['Total_iterations'] + 1,
                        total_video_check_point=main_yaml['Total_video_checkpoint'] + total_vids)

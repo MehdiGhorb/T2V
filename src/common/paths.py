@@ -20,4 +20,9 @@ MODEL_DIR = os.path.join(BASE_DATA_DIR, 'models')
 MODEL_BACKUP_DIR = os.path.join(BASE_DATA_DIR, 'models', 'backups')
 COMMON_DIR = os.path.join(BASE_SRC_DIR, 'common')
 UTILS_DIR = os.path.join(BASE_SRC_DIR, 'utils')
+CLOUD_UTILS = os.path.join(BASE_SRC_DIR, 'cloud')
 CLOUD_CREDS = os.path.join(BASE_DATA_DIR, 'cloud_credentials')
+CLOUD_IDS = os.path.join(BASE_DATA_DIR, 'cloud_ids')
+
+# Checkpoint fileIDs
+DRIVE_FOLDER_IDS = os.path.join(CLOUD_IDS, 'folder_ids.yaml')
