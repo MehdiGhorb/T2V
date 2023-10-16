@@ -1,11 +1,20 @@
 import sys
 import yaml
 import os
+import argparse
 import torch
 from video_diffusion_pytorch import GaussianDiffusion, Unet3D
+from torchvision import transforms as T
 
 sys.path.append('../common')
 import paths
+
+'''TEMP - To Be Deleted'''
+def video_tensor_to_gif(tensor, path, duration = 120, loop = 0, optimize = True):
+    images = map(T.ToPILImage(), tensor.unbind(dim = 1))
+    first_img, *rest_imgs = images
+    first_img.save(path, save_all = True, append_images = rest_imgs, duration = duration, loop = loop, optimize = optimize)
+    return images
 
 '''Load training parameters'''
 with open(os.path.join(paths.CONFIG_DIR, 'trainingParams.yaml'), 'r') as f:
@@ -52,9 +61,18 @@ diffusion = GaussianDiffusion(
     loss_type=TRAINING_LOSS_TYPE    # L1 or L2
 )
 
-new_text = [
-    'a woman face moving and looking around'
-]
+def main():
+    parser = argparse.ArgumentParser(description='Main Training Script')
+    parser.add_argument('prompt', help='Path to the CSV file containing video descriptions')
+    args = parser.parse_args()
+    # Sample
+    sampled_video = diffusion.sample(cond=[args.prompt], cond_scale=2)
 
-sampled_videos = diffusion.sample(cond=new_text, cond_scale=2)
-print(sampled_videos.shape)
+    #Convert the Tensor to a GIF
+    video_tensor_to_gif(sampled_video[0], f"{paths.SAMPLES_DIR}/{args.prompt}.gif")
+
+    print(f"The sample was created with a size of {sampled_video.shape} and was saved at {paths.SAMPLES_DIR}.")
+
+if __name__ == "__main__":
+    main()
+    

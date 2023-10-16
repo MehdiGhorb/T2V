@@ -6,6 +6,7 @@ BASE_DIR = '/mnt/c/Users/ghorb/OneDrive/Desktop/T2V'
 BASE_DATA_DIR = os.path.join(BASE_DIR, 'data')
 BASE_SRC_DIR = os.path.join(BASE_DIR, 'src')
 CONFIG_DIR = os.path.join(BASE_DIR, 'configs')
+ASSETS_DIR = os.path.join(BASE_DIR, 'assets')
 
 # Subdirectories
 BASE_MP4VIDEO_DIRECTORY = os.path.join(BASE_DATA_DIR, 'videos', 'original_videos')
@@ -23,6 +24,7 @@ UTILS_DIR = os.path.join(BASE_SRC_DIR, 'utils')
 CLOUD_UTILS = os.path.join(BASE_SRC_DIR, 'cloud')
 CLOUD_CREDS = os.path.join(BASE_DATA_DIR, 'cloud_credentials')
 CLOUD_IDS = os.path.join(BASE_DATA_DIR, 'cloud_ids')
+SAMPLES_DIR = os.path.join(ASSETS_DIR, 'samples')
 
 # Checkpoint fileIDs
 DRIVE_FOLDER_IDS = os.path.join(CLOUD_IDS, 'folder_ids.yaml')
