@@ -26,3 +26,6 @@ CLOUD_IDS = os.path.join(BASE_DATA_DIR, 'cloud_ids')
 
 # Checkpoint fileIDs
 DRIVE_FOLDER_IDS = os.path.join(CLOUD_IDS, 'folder_ids.yaml')
+
+# Main Model DIR
+MAIN_MODEL = os.path.join(MODEL_DIR, 'main_model.pth')

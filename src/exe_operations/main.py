@@ -49,6 +49,7 @@ def main():
     train_text, val_text = loadTrainValTxt(args.csv_file_path)
     train_tensor = loadTrainingTensor(args.csv_file_path)
     val_tensor = loadValTensor(args.csv_file_path)
+    print(train_tensor.shape)
 
     '''Model'''
     model = Unet3D(
@@ -56,6 +57,13 @@ def main():
         use_bert_text_cond=True,  # this must be set to True to auto-use the bert model dimensions
         dim_mults=(1, 2, 4, 8),
     )
+
+    # Print out the number of paramers
+    total_params = sum(p.numel() for p in model.parameters())
+    memory_usage_gb = (total_params * 4) / (1024**3)
+    print(f"Total parameters in the model: {total_params}")
+    print(f"Memory usage: {memory_usage_gb:.2f} GB")
+
 
     '''Load the latest model'''
     TRAINING_YAML = args.csv_file_path.replace("customised", "training").replace("_train.csv", ".yaml")
@@ -114,6 +122,21 @@ def main():
         print(f"Iteration [{iteration}]: Loss = {loss.item()}")
         if iteration % 100 == 0:
             print(f"Train Iteration [{iteration}/{NUM_ITERATIONS}]: Loss = {loss.item()}")
+
+
+
+        '''Delete the following code snippet'''
+        # Save checkpoint
+        torch.save({
+                'iteration': iteration,
+                'model_state_dict': model.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+                'loss': loss
+        }, CHECKPOINT_PATH)
+        print(f"Checkpoint saved at iteration {iteration + 1}")
+        '''Delete the above code snippet'''
+
+
             
         # Validation every checkpoint_interval iterations
         if (iteration + 1) % CHECKPOINT_INTERVAL == 0:
