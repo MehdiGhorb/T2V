@@ -119,19 +119,15 @@ def main():
     # Save the tensor
     saveTensor(tensor_list=tensor_list,
                tensor_path=os.path.join(paths.TENSOR_PATH + f'/{args.csv_file_name.replace(".csv", "")}', f'track_{main_yaml["Total_iterations"]-1}.pt'))
-    # Upload the tensor YAML file to Drive
-    with open(paths.DRIVE_FOLDER_IDS) as temp_id:
-        folderIDs = yaml.load(temp_id, Loader=yaml.FullLoader)
+
     # Upload Tensor
-    folder_id = getFolderIDByName(folderYAML=folderIDs, 
-                                  name=f'{args.csv_file_name.replace(".csv", "")}')
+    folder_id = getFolderIDByName(name=f'{args.csv_file_name.replace(".csv", "")}')
     tensor_ID = uploadTensor(file_path=os.path.join(paths.TENSOR_PATH + f'/{args.csv_file_name.replace(".csv", "")}', f'track_{main_yaml["Total_iterations"]-1}.pt'), 
                              folder_id=folder_id,
                              file_name_to_upload=f'track_{main_yaml["Total_iterations"]-1}.pt'
                             )
 
-    folder_id = getFolderIDByName(folderYAML=folderIDs, 
-                                  name=f'logs_{args.csv_file_name.replace(".csv", "")}')
+    folder_id = getFolderIDByName(name=f'logs_{args.csv_file_name.replace(".csv", "")}')
     uploadYAML(file_path=video_yamlFile, 
                     folder_id=folder_id,
                     file_name_to_upload=f'track_{main_yaml["Total_iterations"]-1}.yaml',

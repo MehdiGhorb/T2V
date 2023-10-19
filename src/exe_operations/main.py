@@ -46,10 +46,11 @@ def main():
     args = parser.parse_args()
 
     '''Read Training Text Data, Load Training/Validation Tensor'''
-    train_text, val_text = loadTrainValTxt(args.csv_file_path)
     train_tensor = loadTrainingTensor(args.csv_file_path)
     val_tensor = loadValTensor(args.csv_file_path)
-    print(train_tensor.shape)
+    # loadTrainValTxt() must be after loadTrainingTensor() function, since new tensors are only downloaded in loadTrainingTensor() function
+    train_text, val_text = loadTrainValTxt(args.csv_file_path)
+    #print(train_tensor.shape)
 
     '''Model'''
     model = Unet3D(
@@ -131,7 +132,8 @@ def main():
                 'iteration': iteration,
                 'model_state_dict': model.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
-                'loss': loss
+                'loss': 0,
+                'val_loss': 0,
         }, CHECKPOINT_PATH)
         print(f"Checkpoint saved at iteration {iteration + 1}")
         '''Delete the above code snippet'''

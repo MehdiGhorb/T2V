@@ -86,19 +86,21 @@ def uploadTensor(file_path, folder_id, file_name_to_upload):
     
     return file_id      
 
-def downloadFile(file_id, save_path):
-    """Downloads a file
-    Args:
-        real_file_id: ID of the file to download
-        save_path: Path to save the downloaded file
-    Returns: True if download is successful, False otherwise
+def downloadFile(file_n, file_id, save_path):
     """
+    Downloads a file from Google Drive.
+    Args:
+        file_id: ID of the file to download.
+        save_path: Path to save the downloaded file.
+    Returns: True if download is successful, False otherwise.
+    """
+    print(f'Downloading file {file_n} ...\n')
 
     token = os.path.join(paths.CLOUD_CREDS, 'token.json')
     creds = authenticate(token)
 
     try:
-        # Create drive API client
+        # Create Drive API client
         service = build('drive', 'v3', credentials=creds)
 
         # Get the file's metadata to determine its name
@@ -109,15 +111,17 @@ def downloadFile(file_id, save_path):
         with open(os.path.join(save_path, file_name), 'wb') as local_file:
             request = service.files().get_media(fileId=file_id)
             downloader = MediaIoBaseDownload(local_file, request)
-            done = False
-            while done is False:
-                status, done = downloader.next_chunk()
-                print(F'Download {int(status.progress() * 100)}.')
 
+            done = False
+            while not done:
+                status, done = downloader.next_chunk()
+                print(f'Download {int(status.progress() * 100)}%.')
+
+        print(f'File {file_n} has been downloaded successfully.\n')
         return True
 
     except HttpError as error:
-        print(F'An error occurred: {error}')
+        print(f'An error occurred: {error}')
         return False
 
 def uploadDir(root_folder_path, parent_folder_id=None):
@@ -202,8 +206,35 @@ def updateFile(file_name, new_content_path):
         print(f'An error occurred: {error}')
 
 # Function to get folder ID by name
-def getFolderIDByName(folderYAML, name):
-    for folder in folderYAML['folders']:
+def getFolderIDByName(name):
+    with open(paths.DRIVE_FOLDER_IDS) as yaml_file:
+        track_yaml = yaml.load(yaml_file, Loader=yaml.FullLoader)
+
+    for folder in track_yaml['folders']:
         if folder['name'] == name:
             return folder['id']
     return None
+
+def checkForUpdates(file_name, folder_id):
+    try:
+        # Authenticate and create a Drive API client
+        token = os.path.join(paths.CLOUD_CREDS, 'token.json')
+        creds = authenticate(token)
+        service = build('drive', 'v3', credentials=creds)
+
+        # List files in the specified folder
+        results = service.files().list(
+            q=f"'{folder_id}' in parents",
+            fields="files(id, name)"
+        ).execute()
+
+        files = results.get('files', [])
+
+        for tensor in files:
+            if tensor['name'] == file_name:
+                print('worked')
+                return tensor['id']
+        return False
+
+    except HttpError as error:
+        print(f'An error occurred: {error}')
