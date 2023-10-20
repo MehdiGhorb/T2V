@@ -94,7 +94,7 @@ def downloadFile(file_n, file_id, save_path):
         save_path: Path to save the downloaded file.
     Returns: True if download is successful, False otherwise.
     """
-    print(f'Downloading file {file_n} ...\n')
+    print(f'Downloading {file_n} ...\n')
 
     token = os.path.join(paths.CLOUD_CREDS, 'token.json')
     creds = authenticate(token)
@@ -115,9 +115,9 @@ def downloadFile(file_n, file_id, save_path):
             done = False
             while not done:
                 status, done = downloader.next_chunk()
-                print(f'Download {int(status.progress() * 100)}%.')
+                print(f'Downloaded {int(status.progress() * 100)}%.')
 
-        print(f'File {file_n} has been downloaded successfully.\n')
+        print(f'File {file_n} downloaded successfully.\n')
         return True
 
     except HttpError as error:
@@ -232,7 +232,6 @@ def checkForUpdates(file_name, folder_id):
 
         for tensor in files:
             if tensor['name'] == file_name:
-                print('worked')
                 return tensor['id']
         return False
 
