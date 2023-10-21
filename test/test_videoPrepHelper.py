@@ -2,7 +2,7 @@ import unittest
 import os
 import csv
 import sys
-sys.path.append('src/common')
+sys.path.append('../src/common')
 import paths
 sys.path.append(os.path.join(paths.UTILS_DIR, 'video_preprocessing'))
 from videoPrepHelper import read_data

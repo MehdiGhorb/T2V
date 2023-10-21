@@ -1,51 +1,50 @@
-import os
-import sys
 from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
-from google.oauth2.credentials import Credentials
-from googleapiclient.http import MediaIoBaseDownload
+from cloudUtils import *
+import re
 
-sys.path.append('../common')
-import paths
-
-def authenticate(token):
-    SCOPES = ['https://www.googleapis.com/auth/drive']
-    if os.path.exists(token):
-        creds = Credentials.from_authorized_user_file(token, SCOPES)
-        return creds
-    else:
-        raise FileNotFoundError
-
-def downloadFile(file_name, file_id, save_path):
-    """Downloads a file
-    Args:
-        real_file_id: ID of the file to download
-        save_path: Path to save the downloaded file
-    Returns: True if download is successful, False otherwise
-    """
-    print(f'Downloading {file_name} ...\n')
-
-    token = os.path.join(paths.CLOUD_CREDS, 'token.json')
-    creds = authenticate(token)
+def mainModelBackupControl(folder_id, num_elements=5):
+    # Authenticate
+    creds = authenticate(os.path.join(paths.CLOUD_CREDS, 'token.json'))
 
     try:
-        # Create drive API client
+        # Create Google Drive API client
         service = build('drive', 'v3', credentials=creds)
 
-        # Get the file's metadata to determine its name
-        file_metadata = service.files().get(fileId=file_id).execute()
-        file_name = file_metadata.get('name', 'untitled')
+        # List files in the specified folder
+        results = service.files().list(q=f"'{folder_id}' in parents", fields="files(id, name)").execute()
+        files = results.get('files', [])
 
-        # Create a stream to save the downloaded file
-        with open(os.path.join(save_path, file_name), 'wb') as local_file:
-            request = service.files().get_media(fileId=file_id)
-            downloader = MediaIoBaseDownload(local_file, request)
-            print(f'{file_name} was downloaded successfully\n')
+        model_names = []
+        for file in files:
+            model_names.append(file['name'])
+            #print(f"File Name: {file['name']}, File ID: {file['id']}")
+        if len(model_names) > num_elements:
+            min_number_file = min(model_names, 
+                                  key=lambda x: int(re.search(r'\d+', x).group()) if re.search(r'\d+', x) else float('inf'))
+            for file in files:
+                if file['name'] == min_number_file:
+                    delete_file(file_id=file['id'])
+                    print(f"{file['name']} (backup) has been successfully deleted.\n")
 
-        return True
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
 
-    except HttpError as error:
-        print(F'An error occurred: {error}')
-        return False
-    
-downloadFile('1PzsTvhJ-hm0mMafWfc-ZqLhr2MHNQnMm', '')
+def delete_file(file_id):
+    # Authenticate
+    creds = authenticate(os.path.join(paths.CLOUD_CREDS, 'token.json'))
+
+    try:
+        # Create Google Drive API client
+        service = build('drive', 'v3', credentials=creds)
+
+        # Delete the file by its ID
+        service.files().delete(fileId=file_id).execute()
+        print(f"File with ID {file_id} (backup) has been deleted.")
+
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
+
+# Usage
+folder_id = '1D9FY29prg_G2GdGrl4joI6HK0yWL2ZRY'
+mainModelBackupControl(folder_id)
+

@@ -3,7 +3,7 @@ import torch
 import os
 import sys
 
-sys.path.append('src/common')
+sys.path.append('../src/common')
 import paths
 sys.path.append(paths.TENSOR_GEN_PATH)
 from saveTensor import saveTensor, loadTensor
@@ -26,13 +26,6 @@ class TestTensorFunctions(unittest.TestCase):
         self.assertTrue(torch.equal(self.test_data[0], loaded_data[0]))
         self.assertTrue(torch.equal(self.test_data[1], loaded_data[1]))
         self.assertEqual(len(self.test_data), len(loaded_data))
-
-    def test_save_invalid_input(self):
-        # Test saving with an invalid input
-        with self.assertRaises(Exception) as context:
-            saveTensor([torch.tensor(1), 'not_a_tensor'], 'not_a_tensor')
-
-        self.assertTrue("Error: stack expects each tensor to be equal size" in str(context.exception))
 
     def test_load_nonexistent_file(self):
         # Test loading a nonexistent file

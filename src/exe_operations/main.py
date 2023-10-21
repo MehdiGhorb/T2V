@@ -2,6 +2,7 @@
 import argparse
 import os
 import sys
+import ast
 from tqdm import trange
 import torch
 import yaml
@@ -12,9 +13,13 @@ from video_diffusion_pytorch import Unet3D, GaussianDiffusion
 # TODO: This way of importing is suboptimal
 sys.path.append('../common')
 import paths
+
 sys.path.append(os.path.join(paths.UTILS_DIR, 'training'))
 from dataLoader import *
 from earlyStopping import EarlyStopping
+
+sys.path.append(paths.CLOUD_UTILS)
+from cloudUtils import uploadTensor, getFolderIDByName, mainModelBackupControl
 
 '''Load training parameters'''
 with open(os.path.join(paths.CONFIG_DIR, 'trainingParams.yaml'), 'r') as f:
@@ -24,6 +29,10 @@ with open(os.path.join(paths.CONFIG_DIR, 'trainingParams.yaml'), 'r') as f:
 with open(os.path.join(paths.CONFIG_DIR, 'tensorConfig.yaml'), 'r') as f:
     tensor_params = yaml.safe_load(f)
 
+'''Fodler IDs'''
+with open(os.path.join(paths.CLOUD_IDS, 'folder_ids.yaml'), 'r') as f:
+    f_ids = yaml.safe_load(f)
+
 '''Training parameters'''
 NUM_ITERATIONS = int(training_params['num_iterations'])
 TIME_STEPS = int(training_params['time_steps'])
@@ -32,6 +41,9 @@ CHECKPOINT_INTERVAL = int(training_params['checkpoint_interval'])
 DATASET_SIZE = int(training_params['dataset_size'])
 TRAINING_LOSS_TYPE = training_params['training_loss_type']
 CHECKPOINT_PATH = os.path.join(paths.MODEL_DIR, 'main_model.pth')
+UNET_DIM = training_params['Unet'][0]['dim']
+TXT_COND = training_params['Unet'][1]['use_text_cond']
+DIM_MULTS = ast.literal_eval(training_params['Unet'][2]['dim_mults'])
 
 '''Tensor Parameters'''
 IMAGE_SIZE = int(tensor_params['frame_size']/2)
@@ -45,18 +57,20 @@ def main():
     parser.add_argument('csv_file_path', help='Path to the CSV file containing video descriptions')
     args = parser.parse_args()
 
+    '''Main Model Cloud Folder ID'''
+    MODEL_FOLDER_ID = getFolderIDByName(f'{args.csv_file_path}'.replace("train.csv", "models"))
+
     '''Read Training Text Data, Load Training/Validation Tensor'''
     train_tensor = loadTrainingTensor(args.csv_file_path)
     val_tensor = loadValTensor(args.csv_file_path)
     # loadTrainValTxt() must be after loadTrainingTensor() function, since new tensors are only downloaded in loadTrainingTensor() function
     train_text, val_text = loadTrainValTxt(args.csv_file_path)
-    #print(train_tensor.shape)
 
     '''Model'''
     model = Unet3D(
-        dim=64,
-        use_bert_text_cond=True,  # this must be set to True to auto-use the bert model dimensions
-        dim_mults=(1, 2, 4, 8),
+        dim=UNET_DIM,
+        use_bert_text_cond=TXT_COND,  # this must be set to True to auto-use the bert model dimensions
+        dim_mults=DIM_MULTS,
     )
 
     # Print out the number of paramers
@@ -71,7 +85,11 @@ def main():
     last_checkpoint = getLatestTrainingCheckpoint(os.path.join(paths.TRAINING_CHECKPOINT_DIR + f'/{args.csv_file_path.replace("_train.csv", "")}', TRAINING_YAML))
     if last_checkpoint != 0:
         # Load the checkpoint
-        checkpoint = torch.load(os.path.join(paths.MODEL_DIR, 'main_model.pth'))
+        try:
+            checkpoint = torch.load(os.path.join(paths.MODEL_DIR, 'main_model.pth'))
+            print("Main Model loaded successfully\n")
+        except Exception as e:
+            raise Exception(f"Failed to load checkpoint: {str(e)}")
         # Separate keys for model and optimizer
         model_state_dict = checkpoint['model_state_dict']
         # Check if the model state_dict is empty (indicating loading failure)
@@ -97,7 +115,7 @@ def main():
 
     # Assuming you have your optimizer defined
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-    # Define a learning rate scheduler
+    # Define a learning rate scheduler (dynamic learning rate)
     scheduler = StepLR(optimizer, step_size=20, gamma=0.5)
 
     for iteration in trange(NUM_ITERATIONS):
@@ -180,6 +198,13 @@ def main():
     yaml_data["Total_iterations"] = yaml_data["Total_iterations"] + 1
     with open(os.path.join(paths.TRAINING_CHECKPOINT_DIR + f'/{args.csv_file_path.replace("_train.csv", "")}', TRAINING_YAML), "w") as f:
         yaml.dump(yaml_data, f)
+
+    # Upload the model to the cloud
+    _=uploadTensor(file_path=os.path.join(paths.MODEL_DIR, 'main_model.pth'),
+                   folder_id=MODEL_FOLDER_ID,
+                   file_name_to_upload=f'main_model_{last_checkpoint}.pth')
+    # Make sure there are no more than 5 models on the cloud to reduce storage usage
+    mainModelBackupControl(MODEL_FOLDER_ID)
 
     print(" \n'''Training finished'''\n ")
 

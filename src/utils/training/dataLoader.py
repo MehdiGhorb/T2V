@@ -1,6 +1,7 @@
 import os
 import sys
 
+# TODO This is suboptimal
 sys.path.append('../../common')
 import paths
 
