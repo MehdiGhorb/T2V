@@ -141,22 +141,6 @@ def main():
         print(f"Iteration [{iteration}]: Loss = {loss.item()}")
         if iteration % 100 == 0:
             print(f"Train Iteration [{iteration}/{NUM_ITERATIONS}]: Loss = {loss.item()}")
-
-
-
-        '''Delete the following code snippet'''
-        # Save checkpoint
-        torch.save({
-                'iteration': iteration,
-                'model_state_dict': model.state_dict(),
-                'optimizer_state_dict': optimizer.state_dict(),
-                'loss': 0,
-                'val_loss': 0,
-        }, CHECKPOINT_PATH)
-        print(f"Checkpoint saved at iteration {iteration + 1}")
-        '''Delete the above code snippet'''
-
-
             
         # Validation every checkpoint_interval iterations
         if (iteration + 1) % CHECKPOINT_INTERVAL == 0:
