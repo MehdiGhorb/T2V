@@ -19,7 +19,7 @@ from dataLoader import *
 from earlyStopping import EarlyStopping
 
 sys.path.append(paths.CLOUD_UTILS)
-from cloudUtils import uploadTensor, getFolderIDByName, mainModelBackupControl
+from cloudUtils import uploadTensor, getFolderIDByName, mainModelCloudBackupControl
 
 '''Load training parameters'''
 with open(os.path.join(paths.CONFIG_DIR, 'trainingParams.yaml'), 'r') as f:
@@ -40,7 +40,6 @@ BATCH_SIZE = int(training_params['batch_size'])
 CHECKPOINT_INTERVAL = int(training_params['checkpoint_interval'])
 DATASET_SIZE = int(training_params['dataset_size'])
 TRAINING_LOSS_TYPE = training_params['training_loss_type']
-CHECKPOINT_PATH = os.path.join(paths.MODEL_DIR, 'main_model.pth')
 UNET_DIM = training_params['Unet'][0]['dim']
 TXT_COND = training_params['Unet'][1]['use_text_cond']
 DIM_MULTS = ast.literal_eval(training_params['Unet'][2]['dim_mults'])
@@ -48,9 +47,6 @@ DIM_MULTS = ast.literal_eval(training_params['Unet'][2]['dim_mults'])
 '''Tensor Parameters'''
 IMAGE_SIZE = int(tensor_params['frame_size']/2)
 NUM_FRAMES = int(tensor_params['frame_num'])
-
-'''Early Stopping instance'''
-early_stopping = EarlyStopping(patience=20, verbose=True, delta=0.001, path=os.path.join(paths.MODEL_DIR, 'main_model.pth'))
 
 def main():
     parser = argparse.ArgumentParser(description='Main Training Script')
@@ -83,11 +79,18 @@ def main():
     '''Load the latest model'''
     TRAINING_YAML = args.csv_file_path.replace("customised", "training").replace("_train.csv", ".yaml")
     last_checkpoint = getLatestTrainingCheckpoint(os.path.join(paths.TRAINING_CHECKPOINT_DIR + f'/{args.csv_file_path.replace("_train.csv", "")}', TRAINING_YAML))
+    model_path = os.path.join(paths.MODEL_DIR, f'{args.csv_file_path}'.replace('.csv', ''))
+    CHECKPOINT_PATH = os.path.join(model_path, f'main_model_{last_checkpoint}.pth')
+
+    '''Early Stopping instance'''
+    early_stopping = EarlyStopping(patience=20, verbose=True, delta=0.001, path=os.path.join(paths.MODEL_DIR, f'main_model_{last_checkpoint}.pth'))
+
     if last_checkpoint != 0:
+
         # Load the checkpoint
         try:
-            checkpoint = torch.load(os.path.join(paths.MODEL_DIR, 'main_model.pth'))
-            print("Main Model loaded successfully\n")
+            checkpoint = torch.load(os.path.join(model_path, f'main_model_{last_checkpoint-1}.pth'))
+            print(f"Main Model ( main_model_{last_checkpoint}.pth ) loaded successfully\n")
         except Exception as e:
             raise Exception(f"Failed to load checkpoint: {str(e)}")
         # Separate keys for model and optimizer
@@ -117,6 +120,22 @@ def main():
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     # Define a learning rate scheduler (dynamic learning rate)
     scheduler = StepLR(optimizer, step_size=20, gamma=0.5)
+
+
+
+        #'''To be deleted'''
+        # Save checkpoint
+    torch.save({
+                'iteration': 0,
+                'model_state_dict': model.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+                'loss': 0,
+                'val_loss': 0,
+        }, CHECKPOINT_PATH)
+        #'''To be deleted'''
+
+
+
 
     for iteration in trange(NUM_ITERATIONS):
 
@@ -184,11 +203,11 @@ def main():
         yaml.dump(yaml_data, f)
 
     # Upload the model to the cloud
-    _=uploadTensor(file_path=os.path.join(paths.MODEL_DIR, 'main_model.pth'),
+    _=uploadTensor(file_path=os.path.join(model_path, f'main_model_{last_checkpoint}.pth'),
                    folder_id=MODEL_FOLDER_ID,
                    file_name_to_upload=f'main_model_{last_checkpoint}.pth')
     # Make sure there are no more than 5 models on the cloud to reduce storage usage
-    mainModelBackupControl(MODEL_FOLDER_ID)
+    mainModelCloudBackupControl(MODEL_FOLDER_ID)
 
     print(" \n'''Training finished'''\n ")
 

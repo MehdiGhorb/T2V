@@ -239,7 +239,7 @@ def checkForUpdates(file_name, folder_id):
     except HttpError as error:
         print(f'An error occurred: {error}')
 
-def mainModelBackupControl(folder_id, num_elements=5):
+def mainModelCloudBackupControl(folder_id, num_elements=5):
     # Authenticate
     creds = authenticate(os.path.join(paths.CLOUD_CREDS, 'token.json'))
 
@@ -260,13 +260,17 @@ def mainModelBackupControl(folder_id, num_elements=5):
                                   key=lambda x: int(re.search(r'\d+', x).group()) if re.search(r'\d+', x) else float('inf'))
             for file in files:
                 if file['name'] == min_number_file:
-                    delete_file(file_id=file['id'])
+                    deleteCloudFile(file_id=file['id'])
                     print(f"{file['name']} (backup) has been successfully deleted.\n")
 
     except Exception as e:
         print(f"An error occurred: {str(e)}")
 
-def delete_file(file_id):
+# TODO: Add Backup functionality to local machine too
+def mainModelLocalBackupControl(folder_id, num_elements=5):
+    return 0
+
+def deleteCloudFile(file_id):
     # Authenticate
     creds = authenticate(os.path.join(paths.CLOUD_CREDS, 'token.json'))
 

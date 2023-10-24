@@ -40,7 +40,7 @@ model = Unet3D(
     dim_mults=(1, 2, 4, 8),
 )
 
-# Step 2: Load Model Weights
+# Load Model Weights
 checkpoint_path = paths.MAIN_MODEL  # Provide the path to your saved model checkpoint
 checkpoint = torch.load(checkpoint_path)
 
@@ -50,7 +50,7 @@ model.load_state_dict(checkpoint['model_state_dict'])
 # If the checkpoint contains the optimizer state, use this to load the optimizer's state_dict:
 # optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
-# Step 3: Set the Model in Evaluation Mode (if using it for inference)
+# Set the Model in Evaluation Mode (if using it for inference)
 model.eval()
 
 diffusion = GaussianDiffusion(
