@@ -261,14 +261,31 @@ def mainModelCloudBackupControl(folder_id, num_elements=5):
             for file in files:
                 if file['name'] == min_number_file:
                     deleteCloudFile(file_id=file['id'])
-                    print(f"{file['name']} (backup) has been successfully deleted.\n")
+                    print(f"{file['name']} (cloud backup) has been successfully deleted.\n")
+                    break
 
     except Exception as e:
         print(f"An error occurred: {str(e)}")
 
-# TODO: Add Backup functionality to local machine too
-def mainModelLocalBackupControl(folder_id, num_elements=5):
-    return 0
+def mainModelLocalBackupControl(directory_path, num_elements=5):
+
+    try:
+        # List all files in the directory
+        model_names = os.listdir(directory_path)
+
+            #print(f"File Name: {file['name']}, File ID: {file['id']}")
+        if len(model_names) > num_elements:
+            min_number_file = min(model_names, 
+                                  key=lambda x: int(re.search(r'\d+', x).group()) if re.search(r'\d+', x) else float('inf'))
+            
+            if os.path.exists(os.path.join(directory_path, min_number_file)):
+                os.remove(os.path.join(directory_path, min_number_file))
+            else:
+                print(f"File {min_number_file} does not exist.")
+            print(f"{min_number_file} (local backup) has been successfully deleted.\n")
+    
+    except FileNotFoundError:
+        print("Directory not found:", directory_path)
 
 def deleteCloudFile(file_id):
     # Authenticate

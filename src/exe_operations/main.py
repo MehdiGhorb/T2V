@@ -19,7 +19,7 @@ from dataLoader import *
 from earlyStopping import EarlyStopping
 
 sys.path.append(paths.CLOUD_UTILS)
-from cloudUtils import uploadTensor, getFolderIDByName, mainModelCloudBackupControl
+from cloudUtils import uploadTensor, getFolderIDByName, mainModelCloudBackupControl, mainModelLocalBackupControl
 
 '''Load training parameters'''
 with open(os.path.join(paths.CONFIG_DIR, 'trainingParams.yaml'), 'r') as f:
@@ -208,6 +208,7 @@ def main():
                    file_name_to_upload=f'main_model_{last_checkpoint}.pth')
     # Make sure there are no more than 5 models on the cloud to reduce storage usage
     mainModelCloudBackupControl(MODEL_FOLDER_ID)
+    mainModelLocalBackupControl(model_path)
 
     print(" \n'''Training finished'''\n ")
 

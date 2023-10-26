@@ -1,4 +1,4 @@
-num_iterations: 10
+num_iterations: 1
 time_steps : 10 #1000
 batch_size: 1
 checkpoint_interval: 80
