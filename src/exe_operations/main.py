@@ -90,7 +90,7 @@ def main():
         # Load the checkpoint
         try:
             checkpoint = torch.load(os.path.join(model_path, f'main_model_{last_checkpoint-1}.pth'))
-            print(f"Main Model ( main_model_{last_checkpoint}.pth ) loaded successfully\n")
+            print(f"Main Model ( main_model_{last_checkpoint-1}.pth ) loaded successfully\n")
         except Exception as e:
             raise Exception(f"Failed to load checkpoint: {str(e)}")
         # Separate keys for model and optimizer
