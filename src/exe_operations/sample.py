@@ -13,7 +13,12 @@ import paths
 def video_tensor_to_gif(tensor, path, duration = 120, loop = 0, optimize = True):
     images = map(T.ToPILImage(), tensor.unbind(dim = 1))
     first_img, *rest_imgs = images
-    first_img.save(path, save_all = True, append_images = rest_imgs, duration = duration, loop = loop, optimize = optimize)
+    first_img.save(path, 
+                   save_all = True, 
+                   append_images = rest_imgs, 
+                   duration = duration, 
+                   loop = loop, 
+                   optimize = optimize)
     return images
 
 '''Load training parameters'''

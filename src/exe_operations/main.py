@@ -121,10 +121,7 @@ def main():
     # Define a learning rate scheduler (dynamic learning rate)
     scheduler = StepLR(optimizer, step_size=20, gamma=0.5)
 
-
-
-        #'''To be deleted'''
-        # Save checkpoint
+    # Save the new model
     torch.save({
                 'iteration': 0,
                 'model_state_dict': model.state_dict(),
@@ -132,10 +129,6 @@ def main():
                 'loss': 0,
                 'val_loss': 0,
         }, CHECKPOINT_PATH)
-        #'''To be deleted'''
-
-
-
 
     for iteration in trange(NUM_ITERATIONS):
 

@@ -48,11 +48,11 @@ def main():
         tensor_config = yaml.load(config, Loader=yaml.FullLoader)
 
     # Create a sample tensor to compare and remove the unqualified tensors
-    size = (int(tensor_config["channels"]), 
+    sample_size = (int(tensor_config["channels"]), 
             int(tensor_config["frame_num"]), 
             int(tensor_config["frame_size"]/2), 
             int(tensor_config["frame_size"]/2))
-    sample_shape = torch.tensor(size)
+    sample_shape = torch.Size(sample_size)
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
@@ -90,7 +90,7 @@ def main():
     # Iterate through the tensors and check their frame numbers
     for i, tensor in enumerate(tensor_list):
 
-        if torch.equal(tensor, sample_shape):
+        if tensor.size() != sample_shape:
             # If the frame number is not the desired one, append its index to the list
             indexes_to_delete.append(i)
 
