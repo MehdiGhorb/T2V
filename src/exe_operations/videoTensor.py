@@ -1,8 +1,17 @@
 import subprocess
 import argparse
+import os
 import sys
 sys.path.append('../common')
 import paths
+
+sys.path.append(paths.CLOUD_UTILS)
+from cloudUtils import authenticate
+
+# Check token expiry status
+is_expired = authenticate(os.path.join(paths.CLOUD_CREDS, 'token.json'))
+if is_expired == True:
+    sys.exit('Google Drive token has expired, Please renew the token\n')
 
 # Download Videos
 downloader_path = paths.DOWNLOADER_PATH

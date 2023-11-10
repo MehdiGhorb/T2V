@@ -25,7 +25,11 @@ def authenticate(token):
     SCOPES = ['https://www.googleapis.com/auth/drive']
     if os.path.exists(token):
         creds = Credentials.from_authorized_user_file(token, SCOPES)
-        return creds
+        if creds.expired:
+            print('cloud authentication failed\n')
+            return True
+        elif creds.valid:
+            return creds
     else:
         raise FileNotFoundError
 

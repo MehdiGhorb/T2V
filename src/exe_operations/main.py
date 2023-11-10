@@ -19,7 +19,12 @@ from dataLoader import *
 from earlyStopping import EarlyStopping
 
 sys.path.append(paths.CLOUD_UTILS)
-from cloudUtils import uploadTensor, getFolderIDByName, mainModelCloudBackupControl, mainModelLocalBackupControl
+from cloudUtils import uploadTensor, getFolderIDByName, mainModelCloudBackupControl, mainModelLocalBackupControl, authenticate
+
+# Check token expiry status
+is_expired = authenticate(os.path.join(paths.CLOUD_CREDS, 'token.json'))
+if is_expired == True:
+    sys.exit('Google Drive token has expired, Please renew the token\n')
 
 '''Load training parameters'''
 with open(os.path.join(paths.CONFIG_DIR, 'trainingParams.yaml'), 'r') as f:

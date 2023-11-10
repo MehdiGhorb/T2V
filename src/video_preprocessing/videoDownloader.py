@@ -11,9 +11,6 @@ sys.path.append('../utils/video_preprocessing')
 from videoPrepHelper import *
 sys.path.append('../common')
 import paths
-sys.path.append(paths.CLOUD_UTILS)
-from cloudUtils import uploadYAML, getFolderIDByName
-
 
 def main():
     parser = argparse.ArgumentParser(description='Download videos from CSV URLs')
