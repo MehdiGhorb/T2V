@@ -1,5 +1,5 @@
 crop_size: 20
 frame_size: 256
-frame_num: 20
+frame_num: 10
 length: 5
 channels: 3
