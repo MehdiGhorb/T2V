@@ -1,13 +1,13 @@
-num_iterations: 10
+num_iterations: 30
 time_steps : 10 #1000
-batch_size: 32
-checkpoint_interval: 80
-dataset_size: 99
+batch_size: 1
+checkpoint_interval: 5
+dataset_size: 9 #99
 learning_rate : 0.001
 learning_rate_step_size : 20
 learning_rate_gamma : 0.5
 training_loss_type : 'l1' # or l2
 Unet:
-  - dim: 128                  #64
+  - dim: 64                  #64
   - use_text_cond: True
   - dim_mults: (2, 4, 8, 16) #(2, 4, 8, 16)

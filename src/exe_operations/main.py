@@ -80,7 +80,6 @@ def main():
     print(f"Total parameters in the model: {total_params}")
     print(f"Memory usage: {memory_usage_gb:.2f} GB")
 
-
     '''Load the latest model'''
     TRAINING_YAML = args.csv_file_path.replace("customised", "training").replace("_train.csv", ".yaml")
     last_checkpoint = getLatestTrainingCheckpoint(os.path.join(paths.TRAINING_CHECKPOINT_DIR + f'/{args.csv_file_path.replace("_train.csv", "")}', TRAINING_YAML))

@@ -2,13 +2,15 @@
 To use this script run python3 customizeCSV.py {csvfile.csv}
 '''
 
-from utils.video_preocessing.videoPrepHelper import createCustomedVideoCsvFile, read_data
 import argparse
 from tqdm import tqdm
 import sys
-sys.path.append('../common')
-import paths
 import os
+
+sys.path.append('../../common')
+import paths
+sys.path.append(paths.UTILS_DIR + '/video_preprocessing')
+from videoPrepHelper import createCustomedVideoCsvFile, read_data
 
 def main():
     parser = argparse.ArgumentParser(description='Download videos from CSV URLs')
