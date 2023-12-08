@@ -1,8 +1,11 @@
 import os
 
 # Base directories
-# TODO base directory to be calculated rather than hard-coding
-BASE_DIR = '/mnt/c/Users/ghorb/OneDrive/Desktop/T2V'
+# Compute the base directory
+current_path = os.getcwd()
+parts = current_path.split("T2V")
+BASE_DIR = parts[0] + "T2V"
+
 BASE_DATA_DIR = os.path.join(BASE_DIR, 'data')
 BASE_SRC_DIR = os.path.join(BASE_DIR, 'src')
 CONFIG_DIR = os.path.join(BASE_DIR, 'configs')
