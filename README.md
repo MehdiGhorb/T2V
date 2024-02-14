@@ -37,10 +37,3 @@ python3 videoTensor.py customised_results_2M_train.csv 1000 500
 ```
 
 The above code will create 500 Tensors each containing 1000 videos
-
-
-
-  ```python
-def hello_world():
-    print("Hello, world!")
-```
